@@ -1,0 +1,72 @@
+name: Build iOS IPA and Deploy Web # Triggered Update
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+      pages: write      # Required for GitHub Pages
+      id-token: write   # Required for GitHub Pages
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Build Web Assets
+        run: npm run build
+        
+      - name: Upload Web Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Capacitor Sync
+        run: npx cap sync ios
+        
+      - name: Build iOS App (.app)
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj \
+                     -scheme App \
+                     -sdk iphoneos \
+                     -configuration Release \
+                     -derivedDataPath build \
+                     CODE_SIGNING_ALLOWED=NO \
+                     CODE_SIGNING_REQUIRED=NO \
+                     AD_HOC_CODE_SIGNING_ALLOWED=YES \
+                     CLEAN_BUILD_ROOT=YES
+
+      - name: Create IPA (Payload Trick)
+        run: |
+          mkdir -p Payload
+          # Find the .app file path dynamically to avoid errors
+          APP_PATH=$(find build/Build/Products/Release-iphoneos -name "*.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ Error: App.app not found"
+            exit 1
+          fi
+          cp -r "$APP_PATH" Payload/
+          find Payload -name ".DS_Store" -delete
+          zip -rX FoxTrade.ipa Payload
+          
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: FoxTrade-IPA
+          path: FoxTrade.ipa
