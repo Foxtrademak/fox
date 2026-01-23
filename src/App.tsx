@@ -37,7 +37,7 @@ function App() {
 
   useEffect(() => {
     // Force cache refresh by checking version
-    const CURRENT_VERSION = 'v17.4';
+    const CURRENT_VERSION = 'v17.5';
     const savedVersion = localStorage.getItem('app_version');
     if (savedVersion !== CURRENT_VERSION) {
       localStorage.setItem('app_version', CURRENT_VERSION);
@@ -425,6 +425,9 @@ function App() {
 
   return (
     <div className="h-screen bg-[#050507] font-sans selection:bg-primary/30 antialiased relative flex flex-col overflow-hidden">
+      {/* iOS Status Bar Background - Prevents content from appearing behind clock/status icons when scrolling */}
+      <div className="fixed top-0 left-0 right-0 h-[env(safe-area-inset-top)] bg-[#050507] z-[60] pointer-events-none" />
+      
       {/* Background Watermark Logo */}
       <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0 opacity-[0.03] overflow-hidden">
         <img src={logo} alt="" className="w-[120%] max-w-none grayscale rotate-12" />
