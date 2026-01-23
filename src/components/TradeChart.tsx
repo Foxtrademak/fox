@@ -66,7 +66,7 @@ export function TradeChart({ data, initialCapital }: TradeChartProps) {
   const capitals = chartData.map(d => d.capital);
   const minCap = Math.min(...capitals);
   const maxCap = Math.max(...capitals);
-  const padding = (maxCap - minCap) * 0.2 || initialCapital * 0.1;
+  const padding = (maxCap - minCap) * 0.1 || initialCapital * 0.05;
 
   return (
     <div className="h-[280px] w-full ios-card flex flex-col !p-4 !rounded-[2rem]">
@@ -86,7 +86,7 @@ export function TradeChart({ data, initialCapital }: TradeChartProps) {
 
       <div className="flex-1 w-full relative z-10">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 5, right: 35, left: -20, bottom: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="colorCapital" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2}/>
@@ -107,10 +107,10 @@ export function TradeChart({ data, initialCapital }: TradeChartProps) {
               fontSize={8}
               tickLine={false}
               axisLine={false}
-              tick={{ fill: 'rgba(255,255,255,0.3)', fontWeight: 'bold' }}
+              tick={{ fill: 'rgba(255,255,255,0.4)', fontWeight: 'bold' }}
               domain={[minCap - padding, maxCap + padding]}
-              tickFormatter={(value) => `$${value.toLocaleString()}`}
-              width={40}
+              tickFormatter={(value) => `$${(value/1000).toFixed(1)}k`}
+              width={35}
             />
             <Tooltip 
               contentStyle={{ 

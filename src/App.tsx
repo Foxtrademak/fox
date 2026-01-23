@@ -13,6 +13,9 @@ type Tab = 'home' | 'analytics' | 'history' | 'settings';
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [isLocked, setIsLocked] = useState(true);
+  const [, setPassword] = useState(() => localStorage.getItem('app_passcode') || '2525');
+  const [isChangingPass, setIsChangingPass] = useState(false);
+  const [newPass, setNewPass] = useState('');
 
   const [records, setRecords] = useState<DailyRecord[]>(() => {
     const saved = localStorage.getItem('trade_records');
@@ -340,6 +343,66 @@ function App() {
                   <input type="file" className="hidden" accept=".json" onChange={handleImportJSON} />
                   <ChevronRight className="w-4 h-4 text-muted-foreground/30" />
                 </label>
+                {/* Change Password Option */}
+                <button 
+                  onClick={() => { setIsChangingPass(true); haptic('medium'); }}
+                  className="w-full p-5 flex items-center justify-between hover:bg-primary/[0.05] transition-colors group border-b border-white/5"
+                >
+                  <div className="flex items-center gap-4 text-left">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+                      <Lock className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-primary">Security Settings</p>
+                      <p className="text-[10px] font-bold text-muted-foreground">Change access password</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-primary/30" />
+                </button>
+
+                {/* Password Change Modal */}
+                {isChangingPass && (
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="w-full max-w-sm glass-morphism rounded-[2.5rem] p-8 border border-white/10 shadow-2xl scale-in-center">
+                      <h3 className="text-xl font-black text-white mb-2 tracking-tighter">Change Password</h3>
+                      <p className="text-xs font-bold text-muted-foreground mb-6">Enter new 4-digit security code</p>
+                      
+                      <input
+                        type="password"
+                        maxLength={4}
+                        placeholder="••••"
+                        value={newPass}
+                        onChange={(e) => setNewPass(e.target.value.replace(/\D/g, ''))}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-center text-2xl tracking-[1em] font-black text-primary focus:outline-none focus:border-primary/50 transition-colors mb-6"
+                      />
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <button 
+                          onClick={() => { setIsChangingPass(false); setNewPass(''); haptic('light'); }}
+                          className="p-4 rounded-2xl bg-white/5 text-white text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if (newPass.length === 4) {
+                              localStorage.setItem('app_passcode', newPass);
+                              setPassword(newPass);
+                              setIsChangingPass(false);
+                              setNewPass('');
+                              haptic('medium');
+                              alert('Password updated successfully!');
+                            }
+                          }}
+                          className="p-4 rounded-2xl bg-primary text-black text-xs font-black uppercase tracking-widest hover:opacity-90 transition-opacity"
+                        >
+                          Update
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <button onClick={() => {
                   localStorage.clear();
                   sessionStorage.clear();
@@ -378,6 +441,11 @@ function App() {
 
   return (
     <div className="h-screen bg-[#050507] font-sans selection:bg-primary/30 antialiased relative flex flex-col overflow-hidden">
+      {/* Background Watermark Logo */}
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0 opacity-[0.03] overflow-hidden">
+        <img src={logo} alt="" className="w-[120%] max-w-none grayscale rotate-12" />
+      </div>
+
       {isLocked && <LockScreen onUnlock={() => setIsLocked(false)} />}
       
       {/* Main Content Area */}
