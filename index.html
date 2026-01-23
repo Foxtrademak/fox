@@ -5,15 +5,15 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <link rel="icon" type="image/png" href="https://hanimakinfo-code.github.io/Mak/app-logo-new.png?v=17.9" />
-    <link rel="manifest" href="https://hanimakinfo-code.github.io/Mak/manifest.json?v=17.9" />
+    <link rel="icon" type="image/png" href="https://hanimakinfo-code.github.io/Mak/app-logo-new.png?v=18.0" />
+    <link rel="manifest" href="https://hanimakinfo-code.github.io/Mak/manifest.json?v=18.0" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Fox Trade">
-    <link rel="apple-touch-icon" href="https://hanimakinfo-code.github.io/Mak/app-logo-new.png?v=17.9">
-    <link rel="apple-touch-icon" sizes="152x152" href="https://hanimakinfo-code.github.io/Mak/app-logo-new.png?v=17.9">
-    <link rel="apple-touch-icon" sizes="180x180" href="https://hanimakinfo-code.github.io/Mak/app-logo-new.png?v=17.9">
-    <link rel="apple-touch-icon" sizes="167x167" href="https://hanimakinfo-code.github.io/Mak/app-logo-new.png?v=17.9">
+    <link rel="apple-touch-icon" href="https://hanimakinfo-code.github.io/Mak/app-logo-new.png?v=18.0">
+    <link rel="apple-touch-icon" sizes="152x152" href="https://hanimakinfo-code.github.io/Mak/app-logo-new.png?v=18.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://hanimakinfo-code.github.io/Mak/app-logo-new.png?v=18.0">
+    <link rel="apple-touch-icon" sizes="167x167" href="https://hanimakinfo-code.github.io/Mak/app-logo-new.png?v=18.0">
     <style>
       :root {
         --apple-icon-bg: #1a1a1c;
@@ -21,22 +21,36 @@
       body { background-color: #050507; }
     </style>
     <!-- Apple Splash Screens -->
-    <link rel="apple-touch-startup-image" href="https://hanimakinfo-code.github.io/Mak/app-logo-new.png?v=17.9">
+    <link rel="apple-touch-startup-image" href="https://hanimakinfo-code.github.io/Mak/app-logo-new.png?v=18.0">
     <meta name="theme-color" content="#1a1a1c">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <title>FOX TRADE v17.9</title>
+    <title>FOX TRADE v18.0</title>
     <script>
       // Force update logic at the very beginning
-      const VERSION = 'v17.9';
+      const VERSION = 'v18.0';
       if (localStorage.getItem('app_version') !== VERSION) {
         console.log('New version detected, clearing cache and reloading...');
         localStorage.setItem('app_version', VERSION);
         sessionStorage.clear();
         window.location.href = window.location.origin + window.location.pathname + '?force_update=' + VERSION + '&t=' + Date.now();
       }
+
+      // GLOBAL ERROR HANDLER for asset loading failures
+      window.addEventListener('error', function(e) {
+        if (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK') {
+          console.error('Asset failed to load:', e.target.src || e.target.href);
+          const lastReload = sessionStorage.getItem('last_asset_reload');
+          const now = Date.now();
+          // Only reload if we haven't reloaded in the last 10 seconds to avoid infinite loops
+          if (!lastReload || (now - parseInt(lastReload)) > 10000) {
+            sessionStorage.setItem('last_asset_reload', now.toString());
+            window.location.reload(true);
+          }
+        }
+      }, true);
     </script>
   </head>
   <body class="font-inter">
