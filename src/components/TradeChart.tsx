@@ -84,9 +84,9 @@ export function TradeChart({ data, initialCapital }: TradeChartProps) {
         </div>
       </div>
 
-      <div className="flex-1 w-full relative z-10 -ml-4">
-        <ResponsiveContainer width="110%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+      <div className="flex-1 w-full relative z-10">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{ top: 5, right: 35, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="colorCapital" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2}/>
@@ -99,13 +99,18 @@ export function TradeChart({ data, initialCapital }: TradeChartProps) {
               fontSize={8} 
               tickLine={false} 
               axisLine={false}
-              tick={{ fill: 'rgba(255,255,255,0.2)', fontWeight: 800 }}
-              interval={0}
+              tick={{ fill: 'rgba(255,255,255,0.2)', fontWeight: 'bold' }}
               minTickGap={20}
             />
             <YAxis 
-              hide={true}
-              domain={[minCap - padding, maxCap + padding]} 
+              orientation="right"
+              fontSize={8}
+              tickLine={false}
+              axisLine={false}
+              tick={{ fill: 'rgba(255,255,255,0.3)', fontWeight: 'bold' }}
+              domain={[minCap - padding, maxCap + padding]}
+              tickFormatter={(value) => `$${value.toLocaleString()}`}
+              width={40}
             />
             <Tooltip 
               contentStyle={{ 

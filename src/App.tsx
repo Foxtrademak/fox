@@ -369,9 +369,7 @@ function App() {
             </div>
 
             <div className="text-center pt-10 opacity-60">
-              <img src={logo} alt="Logo" className="w-12 h-12 mx-auto mb-3 opacity-20 grayscale" />
-              <p className="text-[10px] font-black uppercase tracking-[0.5em]">Fox Trade</p>
-              <p className="text-[8px] font-bold mt-1">v17.0 (MASTER BUILD)</p>
+              {/* Settings footer logo and info removed per user request */}
             </div>
           </div>
         );
