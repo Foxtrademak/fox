@@ -746,8 +746,8 @@ function App() {
             <LivePriceTicker />
 
             {/* Unique Genius Net Worth Card */}
-            <div className="relative group">
-              <div className="relative overflow-hidden bg-transparent border border-white/[0.05] rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 shadow-none">
+            <div className="relative group px-4 sm:px-0">
+              <div className="relative overflow-hidden bg-white/[0.01] border border-white/[0.05] rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 shadow-2xl backdrop-blur-sm">
                 <div className="relative z-10 flex flex-col items-center text-center space-y-6 sm:space-y-10">
                   <div className="flex flex-col items-center">
                     <div className="flex items-center gap-3 px-5 py-2 bg-primary/10 border border-primary/20 rounded-full backdrop-blur-xl">
