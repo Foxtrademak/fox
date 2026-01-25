@@ -263,8 +263,8 @@ function App() {
 
   useEffect(() => {
     // Force cache refresh by checking version
-    // Fresh Start Version v34.4
-    const CURRENT_VERSION = 'v34.4';
+    // Fresh Start Version v34.5
+    const CURRENT_VERSION = 'v34.5';
     const savedVersion = localStorage.getItem('app_version');
     if (savedVersion !== CURRENT_VERSION) {
       localStorage.setItem('app_version', CURRENT_VERSION);
