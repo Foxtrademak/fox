@@ -21,7 +21,7 @@ export function StatsOverview({ stats, periodStats, records, initialCapital }: S
     <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10 px-4">
       
       {/* Horizontal Thin Stats Layout */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
         <StatCard 
           label="WIN RATE" 
           value={`${stats.winRate.toFixed(1)}%`} 
@@ -67,17 +67,17 @@ export function StatsOverview({ stats, periodStats, records, initialCapital }: S
       </div>
 
       {/* Embedded Portfolio Growth Chart */}
-      <div className="w-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-[2rem] overflow-hidden p-6 shadow-2xl">
-        <div className="mb-8 flex items-center justify-between">
+      <div className="w-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-[2rem] overflow-hidden p-4 sm:p-6 shadow-2xl">
+        <div className="mb-4 sm:mb-8 flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Portfolio Trajectory</p>
-            <h3 className="text-xl font-black text-white tracking-tighter">Growth Analysis</h3>
+            <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Portfolio Trajectory</p>
+            <h3 className="text-lg sm:text-xl font-black text-white tracking-tighter">Growth Analysis</h3>
           </div>
-          <div className="px-4 py-1 bg-white/[0.03] border border-white/[0.05] rounded-full">
-            <span className="text-[9px] font-black text-primary/60 uppercase tracking-widest">Real-time Data</span>
+          <div className="px-3 sm:px-4 py-1 bg-white/[0.03] border border-white/[0.05] rounded-full">
+            <span className="text-[8px] sm:text-[9px] font-black text-primary/60 uppercase tracking-widest">Real-time Data</span>
           </div>
         </div>
-        <div className="w-full min-h-[500px]">
+        <div className="w-full min-h-[300px] sm:min-h-[500px]">
           <TradeChart data={records} initialCapital={initialCapital} />
         </div>
       </div>

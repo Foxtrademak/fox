@@ -747,8 +747,8 @@ function App() {
 
             {/* Unique Genius Net Worth Card */}
             <div className="relative group">
-              <div className="relative overflow-hidden bg-transparent border border-white/[0.05] rounded-[2.5rem] p-10 shadow-none">
-                <div className="relative z-10 flex flex-col items-center text-center space-y-10">
+              <div className="relative overflow-hidden bg-transparent border border-white/[0.05] rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 shadow-none">
+                <div className="relative z-10 flex flex-col items-center text-center space-y-6 sm:space-y-10">
                   <div className="flex flex-col items-center">
                     <div className="flex items-center gap-3 px-5 py-2 bg-primary/10 border border-primary/20 rounded-full backdrop-blur-xl">
                       <div className="w-1.5 h-1.5 rounded-full bg-primary" />
@@ -756,12 +756,12 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="absolute top-0 right-0 p-6">
+                  <div className="absolute top-0 right-0 p-4 sm:p-6">
                     <button 
                       onClick={handleShare}
                       disabled={isSharing}
                       className={cn(
-                        "group relative p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] transition-all duration-500 hover:bg-primary/10 hover:border-primary/20 active:scale-90",
+                        "group relative p-3 sm:p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05] transition-all duration-500 hover:bg-primary/10 hover:border-primary/20 active:scale-90",
                         isSharing && "opacity-50 cursor-not-allowed"
                       )}
                     >
@@ -770,51 +770,46 @@ function App() {
                       ) : (
                         <Share2 className="w-5 h-5 text-white/20 group-hover:text-primary transition-colors" />
                       )}
-                      
-                      {/* Tooltip */}
-              <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-[8px] font-black uppercase tracking-widest rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                Share Performance
-              </span>
                     </button>
                   </div>
 
-                  <div className="relative flex flex-col items-center">
-                    <div className="flex items-baseline gap-4 relative">
+                  <div className="relative flex flex-col items-center w-full">
+                    <div className="flex items-baseline gap-2 sm:gap-4 relative">
                       <div className="relative group/dollar">
-                        <span className="text-5xl font-extralight bg-gradient-to-b from-primary via-primary/80 to-primary/40 bg-clip-text text-transparent select-none">
+                        <span className="text-3xl sm:text-5xl font-extralight bg-gradient-to-b from-primary via-primary/80 to-primary/40 bg-clip-text text-transparent select-none">
                           $
                         </span>
                       </div>
-                      <h2 className="text-8xl font-black tracking-tighter text-white">
+                      <h2 className="text-5xl sm:text-8xl font-black tracking-tighter text-white">
                         {currentCapital.toLocaleString()}
                       </h2>
                     </div>
                     
                     {/* Genius Stats Row */}
-                    <div className="mt-12 grid grid-cols-3 gap-8 w-full max-w-xl px-4">
+                    <div className="mt-8 sm:mt-12 grid grid-cols-3 gap-2 sm:gap-8 w-full max-w-xl px-2 sm:px-4">
                       {/* Health Score */}
-                      <div className="flex flex-col items-center space-y-3 group/stat transition-all duration-300 hover:scale-110">
-                        <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Health Score</p>
+                      <div className="flex flex-col items-center space-y-2 sm:space-y-3 group/stat transition-all duration-300 hover:scale-105 sm:hover:scale-110">
+                        <p className="text-[7px] sm:text-[9px] font-black text-white/20 uppercase tracking-[0.2em] sm:tracking-[0.3em]">Health Score</p>
                         <div className={cn(
-                          "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-tight transition-all",
+                          "flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black tracking-tight transition-all",
                           geniusMetrics.healthScore > 60 
                             ? "bg-green-500/10 text-green-500" 
                             : "bg-red-500/10 text-red-500"
                         )}>
-                          <Sparkles className="w-3 h-3" />
+                          <Sparkles className="w-2.5 sm:w-3 h-2.5 sm:h-3" />
                           {geniusMetrics.healthScore}%
                         </div>
                       </div>
                       
                       {/* 30D Projection */}
-                      <div className="flex flex-col items-center space-y-3 group/stat transition-all duration-300 hover:scale-110">
-                        <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Projected 30D</p>
+                      <div className="flex flex-col items-center space-y-2 sm:space-y-3 group/stat transition-all duration-300 hover:scale-105 sm:hover:scale-110">
+                        <p className="text-[7px] sm:text-[9px] font-black text-white/20 uppercase tracking-[0.2em] sm:tracking-[0.3em]">Projected 30D</p>
                         <div className="flex flex-col items-center">
-                          <p className="text-xl font-black tracking-tighter text-white/90">
-                            <span className="text-xs font-light text-white/30 mr-1">$</span>
+                          <p className="text-sm sm:text-xl font-black tracking-tighter text-white/90">
+                            <span className="text-[10px] sm:text-xs font-light text-white/30 mr-0.5">$</span>
                             {Math.round(geniusMetrics.projected30D).toLocaleString()}
                           </p>
-                          <div className="flex items-center gap-1 text-[8px] font-black text-primary uppercase tracking-widest opacity-60">
+                          <div className="flex items-center gap-1 text-[7px] sm:text-[8px] font-black text-primary uppercase tracking-widest opacity-60">
                             <TrendingUp className="w-2 h-2" />
                             Forecast
                           </div>
@@ -822,18 +817,18 @@ function App() {
                       </div>
                       
                       {/* Growth */}
-                      <div className="flex flex-col items-center space-y-3 group/stat transition-all duration-300 hover:scale-110">
-                        <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em]">Performance</p>
+                      <div className="flex flex-col items-center space-y-2 sm:space-y-3 group/stat transition-all duration-300 hover:scale-105 sm:hover:scale-110">
+                        <p className="text-[7px] sm:text-[9px] font-black text-white/20 uppercase tracking-[0.2em] sm:tracking-[0.3em]">Performance</p>
                         <div className={cn(
-                          "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black tracking-tight transition-all",
+                          "flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black tracking-tight transition-all",
                           stats.totalProfit >= 0 
                             ? "bg-green-500/10 text-green-500" 
                             : "bg-red-500/10 text-red-500"
                         )}>
                           {stats.totalProfit >= 0 ? (
-                            <TrendingUp className="w-3 h-3" />
+                            <TrendingUp className="w-2.5 sm:w-3 h-2.5 sm:h-3" />
                           ) : (
-                            <TrendingDown className="w-3 h-3" />
+                            <TrendingDown className="w-2.5 sm:w-3 h-2.5 sm:h-3" />
                           )}
                           {Math.abs((stats.totalProfit / initialCapital) * 100).toFixed(1)}%
                         </div>
