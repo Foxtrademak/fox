@@ -1731,7 +1731,7 @@ function App() {
       />
 
       {/* Main Content Area */}
-       <main className="flex-1 overflow-y-auto relative z-10 pt-[calc(env(safe-area-inset-top)+2rem)] px-6 custom-scroll pb-44">
+       <main className="flex-1 overflow-y-auto relative z-10 pt-[calc(env(safe-area-inset-top)+2rem)] px-4 sm:px-6 custom-scroll pb-44">
         <div className="relative z-10 max-w-[1400px] mx-auto">
           {renderTabContent()}
         </div>
