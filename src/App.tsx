@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+// Force Update v20.0
 import { Wallet, RotateCcw, Download, Upload, Lock, LayoutGrid, BarChart3, Settings, X, Clock, FileSpreadsheet, TrendingUp, TrendingDown, LogOut, AlertTriangle, Target, Trophy, Info, Trash2, Cloud, RefreshCcw, Share2, Sparkles } from 'lucide-react';
 import { cn, haptic } from './lib/utils';
 import { type DailyRecord, type MT5Trade } from './types';
