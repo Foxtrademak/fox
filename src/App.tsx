@@ -1944,6 +1944,15 @@ function App() {
           </div>
         </>
       )}
+
+      {/* System Stats Footer */}
+      <div className="mt-12 mb-24 flex flex-col items-center gap-4">
+        <div className="px-4 py-1.5 rounded-full bg-white/[0.02] border border-white/[0.05] backdrop-blur-md">
+          <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">
+            System Engine <span className="text-primary/40 ml-2">v20.0</span>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
