@@ -32,3 +32,5 @@ build
 *.ipa
 *.app
 
+.vercel
+.env*.local
