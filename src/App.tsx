@@ -223,6 +223,7 @@ function App() {
           }
         }, (error) => {
           console.error('Real-time listener error:', error);
+          setIsSyncing(false);
         });
       }
     });
@@ -255,7 +256,7 @@ function App() {
       const timeoutId = setTimeout(syncData, 2000); // Debounce sync
       return () => clearTimeout(timeoutId);
     }
-  }, [records, initialCapital, reportTrades, weeklyTarget, monthlyTarget, user]);
+  }, [records, initialCapital, reportTrades, weeklyTarget, monthlyTarget, user, isSyncing]);
 
   useEffect(() => {
     localStorage.setItem('report_trades', JSON.stringify(reportTrades));
@@ -263,8 +264,8 @@ function App() {
 
   useEffect(() => {
     // Force cache refresh by checking version
-    // Fresh Start Version v34.6
-    const CURRENT_VERSION = 'v34.6';
+    // Fresh Start Version v34.7
+    const CURRENT_VERSION = 'v34.7';
     const savedVersion = localStorage.getItem('app_version');
     if (savedVersion !== CURRENT_VERSION) {
       localStorage.setItem('app_version', CURRENT_VERSION);

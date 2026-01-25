@@ -43,17 +43,11 @@ googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
-// Initialize Firestore with settings to avoid ERR_ABORTED
-// Using experimentalForceLongPolling helps in environments with restrictive networks or proxies (common in Electron)
-// In production, we ensure we don't use persistentMultipleTabManager if it causes issues with the app protocol
+// Initialize Firestore with standard settings for web
 export const db = initializeFirestore(app, {
   localCache: persistentLocalCache({
     tabManager: persistentMultipleTabManager()
-  }),
-  experimentalForceLongPolling: true,
-  // Ensure we use the right host for production
-  host: 'firestore.googleapis.com',
-  ssl: true
+  })
 });
 
 export const storage = getStorage(app);
