@@ -81,10 +81,11 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
   };
 
   return (
-    <div className="absolute inset-0 z-[100] bg-black/40 backdrop-blur-[50px] flex flex-col items-center justify-center animate-in fade-in duration-700 overflow-hidden">
-      {/* High Quality Background Design - Pure Minimalist Dark */}
+    <div className="absolute inset-0 z-[100] bg-black/40 backdrop-blur-3xl flex flex-col items-center justify-center animate-in fade-in duration-700 overflow-hidden">
+      {/* High Quality Background Design */}
       <div className="absolute inset-0 pointer-events-none select-none z-0">
         <BackgroundSplitLogo />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/60" />
         {/* Grain/Noise Texture for Consistency */}
         <div className="absolute inset-0 opacity-[0.02] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
       </div>
@@ -92,11 +93,11 @@ export function LockScreen({ onUnlock }: LockScreenProps) {
       <div className="relative z-10 w-full flex flex-col items-center">
         <div className="flex flex-col items-center mb-12">
           <div className="w-28 h-28 relative group">
-            <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-colors" />
-            <img src={logo} alt="Logo" className="w-full h-full object-contain relative z-10 group-hover:scale-105 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-500" />
+            <img src={logo} alt="Logo" className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_25px_rgba(255,215,0,0.15)]" />
           </div>
           <div className="text-center space-y-1">
-            <h1 className="text-4xl font-black tracking-tighter text-white">FOX TRADE</h1>
+            <h1 className="text-4xl font-black tracking-tighter text-white/90 drop-shadow-sm">FOX TRADE</h1>
             <div className="flex items-center justify-center gap-3 px-5 py-2 bg-white/[0.03] rounded-full border border-white/[0.05] shadow-xl">
               <div className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse" />
               <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Secure Protocol</span>
