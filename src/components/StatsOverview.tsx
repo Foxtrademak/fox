@@ -21,7 +21,7 @@ export function StatsOverview({ stats, periodStats, records, initialCapital }: S
     <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10 px-4">
       
       {/* Horizontal Thin Stats Layout */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5 sm:gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
         <StatCard 
           label="WIN RATE" 
           value={`${stats.winRate.toFixed(1)}%`} 
@@ -202,12 +202,12 @@ function StatCard({
       className="relative overflow-hidden group/stat bg-white/[0.02] backdrop-blur-md border border-white/[0.05] p-2.5 sm:p-4 rounded-2xl sm:rounded-[1.8rem] transition-all duration-500 hover:scale-[1.02] hover:bg-white/[0.04] hover:border-white/10"
       onMouseEnter={() => haptic('light')}
     >
-      <div className="flex justify-between items-start relative z-10">
-        <p className="text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.1em] text-white/30">
+      <div className="flex justify-between items-start relative z-10 mb-1">
+        <p className="text-[7px] xs:text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.1em] text-white/30 truncate pr-2">
           {label}
         </p>
         <div className={cn(
-          "w-1 h-1 rounded-full",
+          "w-1 h-1 rounded-full shrink-0",
           trend === 'positive' ? "bg-green-500" : 
           trend === 'negative' ? "bg-red-500" : 
           "bg-blue-500"
@@ -215,7 +215,7 @@ function StatCard({
       </div>
 
       <div className="flex items-end justify-between relative z-10">
-        <div className="text-base sm:text-xl lg:text-2xl font-black text-white tracking-tight">
+        <div className="text-sm xs:text-base sm:text-xl lg:text-2xl font-black text-white tracking-tight truncate">
           {value}
         </div>
       </div>
