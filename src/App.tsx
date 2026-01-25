@@ -263,6 +263,7 @@ function App() {
 
   useEffect(() => {
     // Force cache refresh by checking version
+    // Version 20.0 Deployment Force
     const CURRENT_VERSION = 'v20.0';
     const savedVersion = localStorage.getItem('app_version');
     if (savedVersion !== CURRENT_VERSION) {
