@@ -323,13 +323,23 @@ function App() {
     // Fresh Start Version v36.0
     const CURRENT_VERSION = 'v36.0';
     const savedVersion = localStorage.getItem('app_version');
+    
     if (savedVersion !== CURRENT_VERSION) {
+      // Step 1: Immediately save the new version to prevent loop
       localStorage.setItem('app_version', CURRENT_VERSION);
+      
+      // Step 2: Clear other caches
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          regs.forEach(r => r.unregister());
+        });
       }
       sessionStorage.clear();
-      window.location.href = window.location.origin + window.location.pathname + '?update=' + Date.now();
+      
+      // Step 3: Reload with a slight delay to ensure localStorage is written
+      setTimeout(() => {
+        window.location.href = window.location.origin + window.location.pathname + '?update=' + Date.now();
+      }, 100);
     }
   }, []);
 
