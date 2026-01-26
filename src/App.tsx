@@ -1541,10 +1541,7 @@ function App() {
               <button 
                 onClick={() => {
                   if (user) {
-                    // Option to sign out or just show status
-                    if (window.confirm(`Logged in as ${user.email}. Do you want to sign out?`)) {
-                      handleSignOut();
-                    }
+                    handleManualSync();
                   } else {
                     handleGoogleSignIn();
                   }
@@ -1573,7 +1570,7 @@ function App() {
                   "text-[8px] sm:text-[11px] font-black uppercase tracking-widest transition-colors duration-500",
                   user ? "text-emerald-400/80" : "text-white/40 group-hover:text-indigo-400/80"
                 )}>
-                  {user ? 'Synced' : 'Cloud Sync'}
+                  {user ? (isSyncing ? 'Syncing...' : 'Sync Now') : 'Cloud Sync'}
                 </span>
                 {user && (
                   <span className="absolute -bottom-4 text-[7px] text-white/40 font-medium truncate max-w-[60px]">
