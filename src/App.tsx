@@ -491,7 +491,7 @@ function App() {
     localStorage.setItem('show_targets_on_home', showTargetsOnHome.toString());
   }, [records, initialCapital, weeklyTarget, monthlyTarget, showTargetsOnHome]);
 
-  const stats = useMemo(() => calculateStatistics(records, initialCapital), [records, initialCapital]);
+  const stats = useMemo(() => calculateStatistics(records, initialCapital, reportTrades), [records, initialCapital, reportTrades]);
   const periodStats = useMemo(() => getPeriodStats(records), [records]);
   const sessionStats = useMemo(() => calculateSessionStats(reportTrades), [reportTrades]);
   const insights = useMemo(() => getSmartInsights(records, reportTrades), [records, reportTrades]);

@@ -15,6 +15,8 @@ export interface Statistics {
   expectedValue: number; // Average P/L per trade
   totalProfit: number;
   winLossRatio: number;
+  grossProfit: number;
+  grossLoss: number;
 }
 
 export interface SmartInsight {
@@ -150,8 +152,8 @@ export const getSmartInsights = (records: DailyRecord[], reportTrades: MT5Trade[
   return insights;
 };
 
-export const calculateStatistics = (records: DailyRecord[], initialCapital: number = 1000): Statistics => {
-  if (records.length === 0) {
+export const calculateStatistics = (records: DailyRecord[], initialCapital: number = 1000, reportTrades: MT5Trade[] = []): Statistics => {
+  if (records.length === 0 && reportTrades.length === 0) {
     return {
       winRate: 0,
       maxDrawdown: 0,
@@ -167,7 +169,40 @@ export const calculateStatistics = (records: DailyRecord[], initialCapital: numb
       expectedValue: 0,
       totalProfit: 0,
       winLossRatio: 0,
+      grossProfit: 0,
+      grossLoss: 0,
     };
+  }
+
+  // If we have individual trades, use them for Gross Profit/Loss calculation
+  // otherwise fallback to daily records.
+  let grossProfit = 0;
+  let grossLoss = 0;
+  let totalTradesCount = 0;
+  let winningTradesCount = 0;
+  let losingTradesCount = 0;
+
+  if (reportTrades.length > 0) {
+    reportTrades.forEach(t => {
+      const netProfit = t.profit + (t.commission || 0) + (t.swap || 0);
+      if (netProfit > 0) {
+        grossProfit += netProfit;
+        winningTradesCount++;
+      } else if (netProfit < 0) {
+        grossLoss += Math.abs(netProfit);
+        losingTradesCount++;
+      }
+      totalTradesCount++;
+    });
+  } else {
+    // Fallback to daily records if no individual trades
+    const wins = records.filter(r => r.profitLoss > 0);
+    const losses = records.filter(r => r.profitLoss < 0);
+    grossProfit = wins.reduce((acc, r) => acc + r.profitLoss, 0);
+    grossLoss = Math.abs(losses.reduce((acc, r) => acc + r.profitLoss, 0));
+    totalTradesCount = records.length;
+    winningTradesCount = wins.length;
+    losingTradesCount = records.length - winningTradesCount;
   }
 
   // Sort by date ascending for drawdown calculation
@@ -179,7 +214,6 @@ export const calculateStatistics = (records: DailyRecord[], initialCapital: numb
   let currentCapital = initialCapital;
 
   // Drawdown Calculation
-  // We simulate the capital curve starting from initialCapital
   const capitalCurve = [initialCapital];
   sortedRecords.forEach(r => {
     currentCapital += r.profitLoss;
@@ -197,27 +231,17 @@ export const calculateStatistics = (records: DailyRecord[], initialCapital: numb
     if (drawdownPercent > maxDrawdown) maxDrawdown = drawdownPercent;
   });
 
-  // Basic Stats
-  const wins = records.filter(r => r.profitLoss > 0);
-  const losses = records.filter(r => r.profitLoss <= 0); // Include break-even as non-wins or handle separately? Usually 0 is neutral. Let's count > 0 as win.
-
-  const totalTrades = records.length;
-  const winningTrades = wins.length;
-  const losingTrades = records.length - winningTrades;
-  const winRate = (winningTrades / totalTrades) * 100;
-
-  const grossProfit = wins.reduce((acc, r) => acc + r.profitLoss, 0);
-  const grossLoss = Math.abs(losses.reduce((acc, r) => acc + r.profitLoss, 0));
+  const winRate = totalTradesCount > 0 ? (winningTradesCount / totalTradesCount) * 100 : 0;
   const profitFactor = grossLoss === 0 ? grossProfit : grossProfit / grossLoss;
 
-  const averageWin = wins.length > 0 ? grossProfit / wins.length : 0;
-  const averageLoss = losses.length > 0 ? grossLoss / losses.length : 0; // Absolute value
+  const averageWin = winningTradesCount > 0 ? grossProfit / winningTradesCount : 0;
+  const averageLoss = losingTradesCount > 0 ? grossLoss / losingTradesCount : 0;
 
-  const bestDay = Math.max(...records.map(r => r.profitLoss));
-  const worstDay = Math.min(...records.map(r => r.profitLoss));
+  const bestDay = records.length > 0 ? Math.max(...records.map(r => r.profitLoss)) : 0;
+  const worstDay = records.length > 0 ? Math.min(...records.map(r => r.profitLoss)) : 0;
 
   const totalProfit = records.reduce((acc, r) => acc + r.profitLoss, 0);
-  const expectedValue = totalProfit / totalTrades;
+  const expectedValue = totalTradesCount > 0 ? totalProfit / totalTradesCount : 0;
   const winLossRatio = averageLoss === 0 ? averageWin : averageWin / averageLoss;
 
   return {
@@ -225,9 +249,9 @@ export const calculateStatistics = (records: DailyRecord[], initialCapital: numb
     maxDrawdown,
     maxDrawdownValue,
     profitFactor,
-    totalTrades,
-    winningTrades,
-    losingTrades,
+    totalTrades: totalTradesCount,
+    winningTrades: winningTradesCount,
+    losingTrades: losingTradesCount,
     averageWin,
     averageLoss,
     bestDay,
@@ -235,6 +259,8 @@ export const calculateStatistics = (records: DailyRecord[], initialCapital: numb
     expectedValue,
     totalProfit,
     winLossRatio,
+    grossProfit,
+    grossLoss,
   };
 };
 

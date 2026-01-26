@@ -1,4 +1,5 @@
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid, YAxis } from 'recharts';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { type Statistics, type PeriodStats, type SessionStats } from '../lib/statistics';
 import { cn } from '../lib/utils';
 import { TradeChart } from './TradeChart';
@@ -21,6 +22,83 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
   return (
     <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10 px-4">
       
+      {/* Modern Unified PnL Overview */}
+      <div className="mb-4 sm:mb-6">
+        <div className="group relative overflow-hidden bg-[#0A0A0B]/40 backdrop-blur-2xl border border-white/[0.05] rounded-[2.5rem] transition-all duration-700 hover:border-white/10 shadow-2xl">
+          {/* Animated Background Gradient Glows */}
+          <div className="absolute -top-24 -left-24 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+          <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-rose-500/10 rounded-full blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+          
+          <div className="relative z-10 p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-10">
+            {/* Main Net Profit Section */}
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <div className={cn(
+                  "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border backdrop-blur-md",
+                  stats.totalProfit >= 0 
+                    ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-500/70" 
+                    : "bg-rose-500/5 border-rose-500/20 text-rose-500/70"
+                )}>
+                  Net Performance
+                </div>
+                <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className={cn(
+                  "text-5xl sm:text-7xl font-black tracking-tighter flex items-baseline gap-1 drop-shadow-[0_0_30px_rgba(255,255,255,0.05)]",
+                  stats.totalProfit >= 0 ? "text-white" : "text-white"
+                )}>
+                  <span className={cn(
+                    "text-3xl sm:text-4xl opacity-20",
+                    stats.totalProfit >= 0 ? "text-emerald-500" : "text-rose-500"
+                  )}>{stats.totalProfit >= 0 ? '+' : ''}</span>
+                  {Math.round(stats.totalProfit).toLocaleString()}
+                  <span className="text-xl sm:text-2xl opacity-20 ml-1">$</span>
+                </div>
+                
+                {/* Visual indicator icon */}
+                <div className={cn(
+                  "hidden sm:flex w-14 h-14 rounded-2xl items-center justify-center border transition-transform duration-500 group-hover:scale-110",
+                  stats.totalProfit >= 0 
+                    ? "bg-emerald-500/5 border-emerald-500/10 text-emerald-500" 
+                    : "bg-rose-500/5 border-rose-500/10 text-rose-500"
+                )}>
+                  {stats.totalProfit >= 0 ? <TrendingUp className="w-7 h-7" /> : <TrendingDown className="w-7 h-7" />}
+                </div>
+              </div>
+            </div>
+
+            {/* Metrics Breakdown Grid */}
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:w-1/3">
+              {/* Gross Profit Box */}
+              <div className="relative p-4 rounded-3xl bg-white/[0.02] border border-white/[0.03] overflow-hidden group/box transition-all duration-300 hover:bg-white/[0.04]">
+                <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500/20" />
+                <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">Revenue</p>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-black text-white tracking-tighter">
+                    {Math.round(stats.grossProfit).toLocaleString()}
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-500/50">$</span>
+                </div>
+              </div>
+
+              {/* Gross Loss Box */}
+              <div className="relative p-4 rounded-3xl bg-white/[0.02] border border-white/[0.03] overflow-hidden group/box transition-all duration-300 hover:bg-white/[0.04]">
+                <div className="absolute top-0 left-0 w-1 h-full bg-rose-500/20" />
+                <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">Drawdown</p>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-black text-white tracking-tighter">
+                    {Math.round(stats.grossLoss).toLocaleString()}
+                  </span>
+                  <span className="text-[10px] font-bold text-rose-500/50">$</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Horizontal Thin Stats Layout */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
         <StatCard 
