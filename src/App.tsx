@@ -263,7 +263,71 @@ function App() {
     }
   };
 
-  // Sync logic: Real-time Listener from Firestore
+  // Sync logic: Manual Cloud Fetch
+  const handleManualSync = async () => {
+    if (!user) {
+      alert('Please sign in to sync with cloud.');
+      return;
+    }
+
+    try {
+      haptic('medium');
+      setIsSyncing(true);
+      const docRef = doc(db, 'users', user.uid);
+      const snapshot = await getDoc(docRef);
+      
+      if (snapshot.exists()) {
+        const cloudData = snapshot.data();
+        console.log("Manual sync: Data received from cloud");
+        
+        if (cloudData.records) {
+          const oldLength = recordsRef.current.length;
+          const newLength = cloudData.records.length;
+          if (newLength > oldLength) {
+            sendNotification('Sync Complete', `${newLength - oldLength} new trades imported from cloud.`);
+          }
+          setRecords(cloudData.records);
+          localStorage.setItem('trade_records', JSON.stringify(cloudData.records));
+        }
+        if (cloudData.initialCapital) {
+          setInitialCapital(cloudData.initialCapital);
+          localStorage.setItem('initial_capital', cloudData.initialCapital.toString());
+        }
+        if (cloudData.reportTrades) {
+          setReportTrades(cloudData.reportTrades);
+          localStorage.setItem('report_trades', JSON.stringify(cloudData.reportTrades));
+        }
+        if (cloudData.weeklyTarget) {
+          setWeeklyTarget(cloudData.weeklyTarget);
+          localStorage.setItem('weekly_target', cloudData.weeklyTarget.toString());
+        }
+        if (cloudData.monthlyTarget) {
+          setMonthlyTarget(cloudData.monthlyTarget);
+          localStorage.setItem('monthly_target', cloudData.monthlyTarget.toString());
+        }
+        
+        sendNotification('Sync Successful', 'Your data is now up to date with the cloud.');
+      } else {
+        // If doc doesn't exist, push current local data to create it
+        await setDoc(docRef, {
+          records,
+          initialCapital,
+          reportTrades,
+          weeklyTarget,
+          monthlyTarget,
+          lastSynced: new Date().toISOString()
+        });
+        sendNotification('Cloud Initialized', 'Your local data has been backed up to the cloud.');
+      }
+    } catch (error) {
+      console.error('Manual sync error:', error);
+      alert('Failed to sync with cloud. Please check your connection.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Auth & Notifications Initialization
   useEffect(() => {
     // Check permission on mount and sync state
     if ('Notification' in window) {
@@ -274,83 +338,12 @@ function App() {
       }
     }
 
-    let unsubscribeSnapshot: (() => void) | undefined;
-
-    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      
-      // Clean up previous listener if user changes
-      if (unsubscribeSnapshot) {
-        unsubscribeSnapshot();
-        unsubscribeSnapshot = undefined;
-      }
-
-      if (currentUser) {
-        const docRef = doc(db, 'users', currentUser.uid);
-        
-        // 1. Initial Get (to handle first-time user data push)
-        try {
-          const docSnap = await getDoc(docRef);
-          if (!docSnap.exists()) {
-            await setDoc(docRef, {
-              records,
-              initialCapital,
-              reportTrades,
-              weeklyTarget,
-              monthlyTarget,
-              lastSynced: new Date().toISOString()
-            });
-          }
-        } catch (error) {
-          console.error('Initial check error:', error);
-        }
-
-        // 2. Setup Real-time Listener
-        unsubscribeSnapshot = onSnapshot(docRef, (snapshot) => {
-          if (snapshot.exists() && snapshot.metadata.hasPendingWrites === false) {
-            const cloudData = snapshot.data();
-            console.log("Real-time update received from cloud");
-            
-            setIsSyncing(true); // Temporarily block outgoing sync to prevent loops
-            
-            if (cloudData.records) {
-              const oldLength = recordsRef.current.length;
-              const newLength = cloudData.records.length;
-              if (newLength > oldLength) {
-                sendNotification('Trade Update', `${newLength - oldLength} new trades added from robot.`);
-              }
-              setRecords(cloudData.records);
-              localStorage.setItem('trade_records', JSON.stringify(cloudData.records));
-            }
-            if (cloudData.initialCapital) {
-              setInitialCapital(cloudData.initialCapital);
-              localStorage.setItem('initial_capital', cloudData.initialCapital.toString());
-            }
-            if (cloudData.reportTrades) {
-              setReportTrades(cloudData.reportTrades);
-              localStorage.setItem('report_trades', JSON.stringify(cloudData.reportTrades));
-            }
-            if (cloudData.weeklyTarget) {
-              setWeeklyTarget(cloudData.weeklyTarget);
-              localStorage.setItem('weekly_target', cloudData.weeklyTarget.toString());
-            }
-            if (cloudData.monthlyTarget) {
-              setMonthlyTarget(cloudData.monthlyTarget);
-              localStorage.setItem('monthly_target', cloudData.monthlyTarget.toString());
-            }
-            
-            setTimeout(() => setIsSyncing(false), 500);
-          }
-        }, (error) => {
-          console.error('Real-time listener error:', error);
-          setIsSyncing(false);
-        });
-      }
     });
 
     return () => {
       unsubscribeAuth();
-      if (unsubscribeSnapshot) unsubscribeSnapshot();
     };
   }, []);
 
@@ -1330,7 +1323,7 @@ function App() {
               <div className="flex flex-col items-center justify-center py-20 bg-white/[0.01] border border-white/[0.03] rounded-[2.5rem] border-dashed">
                 <FileSpreadsheet className="w-16 h-16 text-white/5 mb-4" />
                 <p className="text-white/20 font-black uppercase tracking-widest text-[10px]">No trades imported yet</p>
-                <p className="text-white/10 text-xs mt-2">Tap the central logo to import an MT5 report</p>
+                <p className="text-white/10 text-xs mt-2">Tap the central logo to sync with cloud</p>
               </div>
             ) : filteredTrades.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 bg-white/[0.01] border border-white/[0.03] rounded-[2.5rem]">
@@ -1888,14 +1881,28 @@ function App() {
           </div>
         </button>
 
-        {/* Central Add Button (Now MT5 Import) */}
+        {/* Central Add Button (Now Manual Sync) */}
         <div className="flex-1 flex items-center justify-center -mt-8 sm:-mt-12">
           <button 
-            onClick={() => { fileInputRef.current?.click(); haptic('medium'); }}
-            className="w-16 h-16 sm:w-20 sm:h-20 bg-white/[0.03] backdrop-blur-[40px] rounded-[1.8rem] sm:rounded-[2.2rem] p-3 sm:p-4 border border-white/[0.12] shadow-[0_20px_40px_rgba(0,0,0,0.6)] active:scale-90 transition-all duration-300 flex items-center justify-center group relative overflow-hidden"
+            onClick={() => { handleManualSync(); haptic('medium'); }}
+            className={cn(
+              "w-16 h-16 sm:w-20 sm:h-20 bg-white/[0.03] backdrop-blur-[40px] rounded-[1.8rem] sm:rounded-[2.2rem] p-3 sm:p-4 border border-white/[0.12] shadow-[0_20px_40px_rgba(0,0,0,0.6)] active:scale-90 transition-all duration-300 flex items-center justify-center group relative overflow-hidden",
+              isSyncing && "ring-2 ring-primary/50"
+            )}
           >
-            <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-            <img src={logo} alt="Logo" className="w-full h-full object-contain relative z-10 group-hover:scale-110 transition-transform duration-500" />
+            <div className={cn(
+              "absolute inset-0 bg-primary/10 transition-opacity duration-500",
+              isSyncing ? "opacity-100 animate-pulse" : "opacity-0 group-hover:opacity-100"
+            )} />
+            <img 
+               src={logo} 
+               alt="Logo" 
+               className={cn(
+                 "w-full h-full object-contain relative z-10 transition-all duration-500",
+                 isSyncing ? "scale-90 animate-spin" : "group-hover:scale-110"
+               )} 
+             />
+            {/* Hidden MT5 Input - Still accessible via fileInputRef if needed elsewhere */}
             <input 
               type="file" 
               ref={fileInputRef}
