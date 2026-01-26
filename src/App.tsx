@@ -1604,7 +1604,11 @@ function App() {
             <div className="mt-24 sm:mt-32 pb-8 flex flex-col items-center">
               <div className="w-full max-w-[200px] h-[1px] bg-gradient-to-r from-transparent via-white/5 to-transparent mb-12" />
               <button 
-                onClick={() => { setIsLocked(true); haptic('heavy'); }}
+                onClick={() => { 
+                  if (user) handleSignOut();
+                  setIsLocked(true); 
+                  haptic('heavy'); 
+                }}
                 className="group relative flex flex-col items-center gap-4 transition-all duration-500 active:scale-95"
               >
                 <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
