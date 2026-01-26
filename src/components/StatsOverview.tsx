@@ -78,18 +78,60 @@ export function StatsOverview({ stats, periodStats, records, initialCapital }: S
       </div>
 
       {/* Embedded Portfolio Growth Chart */}
-      <div className="w-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-[2rem] overflow-hidden p-4 sm:p-6 shadow-2xl">
-        <div className="mb-4 sm:mb-8 flex items-center justify-between">
-          <div>
-            <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Portfolio Trajectory</p>
-            <h3 className="text-lg sm:text-xl font-black text-white tracking-tighter">Growth Analysis</h3>
+      <div className="w-full bg-white/[0.01] backdrop-blur-[40px] border border-white/[0.05] rounded-[1.8rem] sm:rounded-[2.5rem] overflow-hidden p-4 sm:p-10 shadow-2xl relative group">
+        {/* Background Decorative Glow */}
+        <div className="absolute -top-12 -right-12 sm:-top-24 sm:-right-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/10 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/15 transition-all duration-700" />
+        <div className="absolute -bottom-12 -left-12 sm:-bottom-24 sm:-left-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/5 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/10 transition-all duration-700" />
+
+        <div className="mb-4 sm:mb-8 flex flex-row items-center justify-between gap-2 relative z-10">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1 sm:gap-1.5 mb-0.5">
+              <div className="w-1 h-1 rounded-full bg-primary/60 shadow-[0_0_8px_rgba(212,175,55,0.4)]" />
+              <p className="text-[7px] sm:text-[9px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/10">Trajectory</p>
+            </div>
+            <h3 className="text-base sm:text-2xl font-black text-white tracking-tighter leading-tight">
+              Growth <span className="text-primary/70">Analysis</span>
+            </h3>
           </div>
-          <div className="px-3 sm:px-4 py-1 bg-white/[0.03] border border-white/[0.05] rounded-full">
-            <span className="text-[8px] sm:text-[9px] font-black text-primary/60 uppercase tracking-widest">Real-time Data</span>
+          
+          <div className="flex items-center gap-3 sm:gap-8">
+            <div className="flex flex-col items-end">
+              <p className="text-[6px] sm:text-[7px] font-black text-white/10 uppercase tracking-widest mb-0.5">Balance</p>
+              <p className="text-sm sm:text-xl font-black text-white/90 tracking-tighter">
+                <span className="text-primary/40 text-[10px] sm:text-sm mr-0.5">$</span>
+                {(initialCapital + stats.totalProfit).toLocaleString()}
+              </p>
+            </div>
+            <div className="w-px h-5 sm:h-6 bg-white/5" />
+            <div className="flex flex-col items-end">
+              <p className="text-[6px] sm:text-[7px] font-black text-white/10 uppercase tracking-widest mb-0.5">P/L</p>
+              <p className={cn(
+                "text-sm sm:text-xl font-black tracking-tighter",
+                stats.totalProfit >= 0 ? "text-green-500/60" : "text-red-500/60"
+              )}>
+                {stats.totalProfit >= 0 ? '+' : '-'}${Math.abs(stats.totalProfit).toLocaleString()}
+              </p>
+            </div>
           </div>
         </div>
-        <div className="w-full h-[350px] sm:h-[500px]">
+
+        <div className="w-full h-[280px] sm:h-[550px] relative z-10">
           <TradeChart data={records} initialCapital={initialCapital} />
+        </div>
+        
+        {/* Subtle Footer info */}
+        <div className="mt-4 sm:mt-6 flex items-center justify-between opacity-20 relative z-10">
+          <div className="flex gap-2 sm:gap-4">
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              <div className="w-0.5 h-0.5 sm:w-1 sm:h-1 rounded-full bg-primary" />
+              <span className="text-[6px] sm:text-[8px] font-black uppercase tracking-widest text-white">Live Engine</span>
+            </div>
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              <div className="w-0.5 h-0.5 sm:w-1 sm:h-1 rounded-full bg-white/40" />
+              <span className="text-[6px] sm:text-[8px] font-black uppercase tracking-widest text-white">Quantum Sync</span>
+            </div>
+          </div>
+          <span className="text-[6px] sm:text-[8px] font-black uppercase tracking-widest text-white">V36.0 Protocol</span>
         </div>
       </div>
 
