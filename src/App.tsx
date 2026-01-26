@@ -1323,7 +1323,7 @@ function App() {
               <div className="flex flex-col items-center justify-center py-20 bg-white/[0.01] border border-white/[0.03] rounded-[2.5rem] border-dashed">
                 <FileSpreadsheet className="w-16 h-16 text-white/5 mb-4" />
                 <p className="text-white/20 font-black uppercase tracking-widest text-[10px]">No trades imported yet</p>
-                <p className="text-white/10 text-xs mt-2">Tap the central logo to sync with cloud</p>
+                <p className="text-white/10 text-xs mt-2">Tap the central logo to import an MT5 report</p>
               </div>
             ) : filteredTrades.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 bg-white/[0.01] border border-white/[0.03] rounded-[2.5rem]">
@@ -1600,25 +1600,46 @@ function App() {
               </button>
             </div>
 
-            {/* Logout - Prominent at bottom */}
+            {/* Auth Button (Sign In / Sign Out) */}
             <div className="mt-24 sm:mt-32 pb-8 flex flex-col items-center">
               <div className="w-full max-w-[200px] h-[1px] bg-gradient-to-r from-transparent via-white/5 to-transparent mb-12" />
               <button 
                 onClick={() => { 
-                  if (user) handleSignOut();
-                  setIsLocked(true); 
+                  if (user) {
+                    handleSignOut();
+                  } else {
+                    handleGoogleSignIn();
+                  }
                   haptic('heavy'); 
                 }}
                 className="group relative flex flex-col items-center gap-4 transition-all duration-500 active:scale-95"
               >
                 <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-red-500/20 rounded-full blur-2xl group-hover:bg-red-500/40 transition-all duration-700 opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-125" />
-                  <div className="absolute inset-0 bg-white/[0.02] border border-white/[0.05] rounded-full backdrop-blur-xl group-hover:border-red-500/40 transition-all duration-500 group-hover:bg-red-500/10 shadow-2xl" />
-                  <LogOut className="w-9 h-9 sm:w-11 sm:h-11 text-red-500/40 group-hover:text-red-500 group-hover:scale-110 transition-all duration-500 relative z-10 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]" />
+                  <div className={cn(
+                    "absolute inset-0 rounded-full blur-2xl transition-all duration-700 opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-125",
+                    user ? "bg-red-500/20 group-hover:bg-red-500/40" : "bg-primary/20 group-hover:bg-primary/40"
+                  )} />
+                  <div className={cn(
+                    "absolute inset-0 bg-white/[0.02] border border-white/[0.05] rounded-full backdrop-blur-xl transition-all duration-500 shadow-2xl",
+                    user ? "group-hover:border-red-500/40 group-hover:bg-red-500/10" : "group-hover:border-primary/40 group-hover:bg-primary/10"
+                  )} />
+                  {user ? (
+                    <LogOut className="w-9 h-9 sm:w-11 sm:h-11 text-red-500/40 group-hover:text-red-500 group-hover:scale-110 transition-all duration-500 relative z-10 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]" />
+                  ) : (
+                    <Sparkles className="w-9 h-9 sm:w-11 sm:h-11 text-primary/40 group-hover:text-primary group-hover:scale-110 transition-all duration-500 relative z-10 drop-shadow-[0_0_8px_rgba(255,184,0,0.4)]" />
+                  )}
                 </div>
                 <div className="flex flex-col items-center gap-1">
-                  <span className="text-[10px] sm:text-[13px] font-black uppercase tracking-[0.4em] text-white/40 group-hover:text-red-500 transition-colors duration-500">Sign Out</span>
-                  <div className="w-0 group-hover:w-full h-[1px] bg-red-500/50 transition-all duration-500 rounded-full" />
+                  <span className={cn(
+                    "text-[10px] sm:text-[13px] font-black uppercase tracking-[0.4em] transition-colors duration-500",
+                    user ? "text-white/40 group-hover:text-red-500" : "text-white/40 group-hover:text-primary"
+                  )}>
+                    {user ? 'Sign Out' : 'Sign In'}
+                  </span>
+                  <div className={cn(
+                    "w-0 group-hover:w-full h-[1px] transition-all duration-500 rounded-full",
+                    user ? "bg-red-500/50" : "bg-primary/50"
+                  )} />
                 </div>
               </button>
             </div>
@@ -1882,28 +1903,18 @@ function App() {
           </div>
         </button>
 
-        {/* Central Add Button (Now Manual Sync) */}
+        {/* Central Add Button (Now MT5 Import) */}
         <div className="flex-1 flex items-center justify-center -mt-8 sm:-mt-12">
           <button 
-            onClick={() => { handleManualSync(); haptic('medium'); }}
-            className={cn(
-              "w-16 h-16 sm:w-20 sm:h-20 bg-white/[0.03] backdrop-blur-[40px] rounded-[1.8rem] sm:rounded-[2.2rem] p-3 sm:p-4 border border-white/[0.12] shadow-[0_20px_40px_rgba(0,0,0,0.6)] active:scale-90 transition-all duration-300 flex items-center justify-center group relative overflow-hidden",
-              isSyncing && "ring-2 ring-primary/50"
-            )}
+            onClick={() => { fileInputRef.current?.click(); haptic('medium'); }}
+            className="w-16 h-16 sm:w-20 sm:h-20 bg-white/[0.03] backdrop-blur-[40px] rounded-[1.8rem] sm:rounded-[2.2rem] p-3 sm:p-4 border border-white/[0.12] shadow-[0_20px_40px_rgba(0,0,0,0.6)] active:scale-90 transition-all duration-300 flex items-center justify-center group relative overflow-hidden"
           >
-            <div className={cn(
-              "absolute inset-0 bg-primary/10 transition-opacity duration-500",
-              isSyncing ? "opacity-100 animate-pulse" : "opacity-0 group-hover:opacity-100"
-            )} />
+            <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
             <img 
                src={logo} 
                alt="Logo" 
-               className={cn(
-                 "w-full h-full object-contain relative z-10 transition-all duration-500",
-                 isSyncing ? "scale-90 animate-spin" : "group-hover:scale-110"
-               )} 
+               className="w-full h-full object-contain relative z-10 group-hover:scale-110 transition-transform duration-500" 
              />
-            {/* Hidden MT5 Input - Still accessible via fileInputRef if needed elsewhere */}
             <input 
               type="file" 
               ref={fileInputRef}
