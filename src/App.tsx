@@ -46,6 +46,30 @@ function App() {
     return 'Notification' in window && Notification.permission === 'granted';
   });
 
+  // Robot Remote Control States
+  const [robotSettings, setRobotSettings] = useState(() => {
+    const saved = localStorage.getItem('robot_settings');
+    return saved ? JSON.parse(saved) : {
+      isEnabled: true,
+      lotSize: 0.01,
+      maxDailyLoss: 100,
+      targetProfit: 50,
+      riskLevel: 'medium' as 'low' | 'medium' | 'high',
+      pairs: ['XAUUSD', 'EURUSD'],
+      lastCommand: 'idle',
+      updatedAt: new Date().toISOString()
+    };
+  });
+  const [showRobotConfig, setShowRobotConfig] = useState(false);
+
+  // Function to update robot settings
+  const updateRobotSettings = (updates: Partial<typeof robotSettings>) => {
+    const newSettings = { ...robotSettings, ...updates, updatedAt: new Date().toISOString() };
+    setRobotSettings(newSettings);
+    localStorage.setItem('robot_settings', JSON.stringify(newSettings));
+    haptic('medium');
+  };
+
   // Function to send local notifications
   const sendNotification = (title: string, body: string) => {
     if (notificationsEnabled && 'Notification' in window) {
@@ -59,14 +83,14 @@ function App() {
 
   const requestNotificationPermission = async () => {
     if (!('Notification' in window)) {
-      alert('هذا المتصفح لا يدعم الإشعارات.');
+      alert('This browser does not support notifications.');
       return;
     }
 
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       setNotificationsEnabled(true);
-      sendNotification('تم تفعيل الإشعارات', 'ستصلك الآن تنبيهات بخصوص جلسات التداول والمزامنة.');
+      sendNotification('Notifications Enabled', 'You will now receive alerts regarding trading sessions and synchronization.');
     } else {
       setNotificationsEnabled(false);
     }
@@ -84,10 +108,10 @@ function App() {
         const minute = now.getMinutes();
 
         // Market session starts (Beirut Time)
-        if (hour === 11 && minute === 0) sendNotification('بورصة لندن', 'جلسة لندن بدأت الآن! وقت السيولة.');
-        if (hour === 16 && minute === 0) sendNotification('بورصة نيويورك', 'جلسة نيويورك بدأت الآن! استعد للتحركات القوية.');
-        if (hour === 3 && minute === 0) sendNotification('بورصة طوكيو', 'جلسة طوكيو بدأت الآن.');
-        if (hour === 1 && minute === 0) sendNotification('بورصة سيدني', 'جلسة سيدني بدأت الآن.');
+        if (hour === 11 && minute === 0) sendNotification('London Session', 'London session has started! Time for liquidity.');
+        if (hour === 16 && minute === 0) sendNotification('New York Session', 'New York session has started! Get ready for high volatility.');
+        if (hour === 3 && minute === 0) sendNotification('Tokyo Session', 'Tokyo session has started.');
+        if (hour === 1 && minute === 0) sendNotification('Sydney Session', 'Sydney session has started.');
       }
     }, 60000); // Update every minute
     return () => clearInterval(timer);
@@ -173,16 +197,16 @@ function App() {
     } catch (error: any) {
       console.error('Sign in error details:', error);
       console.log('Current window origin:', window.location.origin);
-      let errorMessage = 'فشل تسجيل الدخول عبر جوجل.';
+      let errorMessage = 'Google sign-in failed.';
       
       if (error.code === 'auth/unauthorized-domain') {
-        errorMessage += '\n\nهذا النطاق غير مصرح به في Firebase. يرجى التأكد من إضافة "localhost" في Authorized Domains.';
+        errorMessage += '\n\nThis domain is not authorized in Firebase. Please make sure "localhost" is added to Authorized Domains.';
       } else if (error.code === 'auth/popup-blocked') {
-        errorMessage += '\n\nتم حظر النافذة المنبثقة. يرجى السماح بالنوافذ المنبثقة للتطبيق.';
+        errorMessage += '\n\nPopup blocked. Please allow popups for this application.';
       } else if (error.code === 'auth/operation-not-allowed') {
-        errorMessage += '\n\nتسجيل الدخول عبر جوجل غير مفعل في مشروع Firebase الخاص بك.';
+        errorMessage += '\n\nGoogle sign-in is not enabled in your Firebase project.';
       } else {
-        errorMessage += `\n\nتفاصيل الخطأ: ${error.message || 'خطأ غير معروف'}`;
+        errorMessage += `\n\nError details: ${error.message || 'Unknown error'}`;
       }
       
       alert(errorMessage);
@@ -253,7 +277,7 @@ function App() {
               const oldLength = records.length;
               const newLength = cloudData.records.length;
               if (newLength > oldLength) {
-                sendNotification('تحديث التداول', `تمت إضافة ${newLength - oldLength} صفقات جديدة من الروبوت.`);
+                sendNotification('Trade Update', `${newLength - oldLength} new trades added from robot.`);
               }
               setRecords(cloudData.records);
               localStorage.setItem('trade_records', JSON.stringify(cloudData.records));
@@ -512,7 +536,7 @@ function App() {
         }
 
         if (headerRowIndex === -1) {
-          alert('لم يتم العثور على جدول الصفقات (Positions). يرجى التأكد من اختيار ملف يحتوي على جدول المراكز.');
+          alert('Positions table not found. Please ensure you select a file containing the positions table.');
           setIsImporting(false);
           return;
         }
