@@ -907,26 +907,26 @@ function App() {
                     {/* Market Sessions (Mobile Grid & Desktop Top) */}
                     <div className="w-full">
                       {/* Mobile: Grid Layout - Optimized */}
-                      <div className="grid grid-cols-2 gap-2 sm:hidden w-full px-2">
+                      <div className="grid grid-cols-2 gap-1.5 sm:hidden w-full px-1">
                         {sessions.map((session) => (
                           <div key={session.name} className={cn(
-                            "p-2 sm:p-3 rounded-xl border transition-all duration-300",
+                            "p-1.5 rounded-lg border transition-all duration-300",
                             session.active 
-                              ? "bg-primary/10 border-primary/20 shadow-[0_0_15px_rgba(212,175,55,0.1)]" 
-                              : "bg-white/[0.01] border-white/[0.05] opacity-40"
+                              ? "bg-primary/10 border-primary/20 shadow-[0_0_10px_rgba(212,175,55,0.05)]" 
+                              : "bg-white/[0.01] border-white/[0.05] opacity-30"
                           )}>
-                            <div className="flex items-center justify-between mb-0.5">
+                            <div className="flex items-center justify-between mb-0">
                               <span className={cn(
-                                "text-[9px] sm:text-[10px] font-black uppercase tracking-tight",
-                                session.active ? "text-primary" : "text-white/40"
+                                "text-[8px] font-black uppercase tracking-tight",
+                                session.active ? "text-primary" : "text-white/30"
                               )}>
                                 {session.name}
                               </span>
-                              {session.active && <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-primary animate-pulse" />}
+                              {session.active && <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />}
                             </div>
                             <span className={cn(
-                              "text-[8px] sm:text-[9px] font-bold tracking-widest",
-                              session.active ? "text-primary/60" : "text-white/20"
+                              "text-[7px] font-bold tracking-tighter",
+                              session.active ? "text-primary/60" : "text-white/10"
                             )}>
                               {session.timeDisplay}
                             </span>
