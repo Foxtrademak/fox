@@ -414,6 +414,46 @@ function App() {
     }
   }, [records, initialCapital, reportTrades, weeklyTarget, monthlyTarget, user, isSyncing]);
 
+  // Automatic Cloud Fetch every 30 seconds
+  useEffect(() => {
+    if (!user) return;
+
+    const autoFetch = async () => {
+      if (isSyncing) return;
+      
+      try {
+        const docRef = doc(db, 'users', user.uid);
+        const snapshot = await getDoc(docRef);
+        
+        if (snapshot.exists()) {
+          const cloudData = snapshot.data();
+          
+          if (cloudData.records && JSON.stringify(cloudData.records) !== JSON.stringify(recordsRef.current)) {
+            setRecords(cloudData.records);
+            localStorage.setItem('trade_records', JSON.stringify(cloudData.records));
+          }
+          if (cloudData.initialCapital !== undefined && cloudData.initialCapital !== parseFloat(localStorage.getItem('initial_capital') || '0')) {
+            setInitialCapital(cloudData.initialCapital);
+            localStorage.setItem('initial_capital', cloudData.initialCapital.toString());
+          }
+          if (cloudData.weeklyTarget !== undefined && cloudData.weeklyTarget !== parseFloat(localStorage.getItem('weekly_target') || '0')) {
+            setWeeklyTarget(cloudData.weeklyTarget);
+            localStorage.setItem('weekly_target', cloudData.weeklyTarget.toString());
+          }
+          if (cloudData.monthlyTarget !== undefined && cloudData.monthlyTarget !== parseFloat(localStorage.getItem('monthly_target') || '0')) {
+            setMonthlyTarget(cloudData.monthlyTarget);
+            localStorage.setItem('monthly_target', cloudData.monthlyTarget.toString());
+          }
+        }
+      } catch (error) {
+        console.error('Auto-fetch error:', error);
+      }
+    };
+
+    const intervalId = setInterval(autoFetch, 30000); // 30 seconds
+    return () => clearInterval(intervalId);
+  }, [user]);
+
   useEffect(() => {
     localStorage.setItem('report_trades', JSON.stringify(reportTrades));
   }, [reportTrades]);
@@ -449,8 +489,38 @@ function App() {
   const insights = useMemo(() => getSmartInsights(records, reportTrades), [records, reportTrades]);
 
   const targetProgress = useMemo(() => {
-    const weeklyProfit = periodStats.weekly[periodStats.weekly.length - 1]?.profit || 0;
-    const monthlyProfit = periodStats.monthly[periodStats.monthly.length - 1]?.profit || 0;
+    // Helper to get profit for current week
+    const getWeeklyProfit = () => {
+      const now = new Date();
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      return records.reduce((sum, record) => {
+        const recordDate = new Date(record.date);
+        if (recordDate >= startOfWeek) {
+          return sum + record.profitLoss;
+        }
+        return sum;
+      }, 0);
+    };
+
+    // Helper to get profit for current month
+    const getMonthlyProfit = () => {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      return records.reduce((sum, record) => {
+        const recordDate = new Date(record.date);
+        if (recordDate >= startOfMonth) {
+          return sum + record.profitLoss;
+        }
+        return sum;
+      }, 0);
+    };
+
+    const weeklyProfit = getWeeklyProfit();
+    const monthlyProfit = getMonthlyProfit();
     
     return {
       weekly: {
@@ -464,7 +534,7 @@ function App() {
         percentage: Math.min(Math.max((monthlyProfit / monthlyTarget) * 100, 0), 100)
       }
     };
-  }, [periodStats, weeklyTarget, monthlyTarget]);
+  }, [records, weeklyTarget, monthlyTarget]);
 
   const geniusMetrics = useMemo(() => {
     // 1. Portfolio Health Score (0-100)

@@ -19,25 +19,30 @@ export const ShareCard: React.FC<ShareCardProps> = ({ cardRef, data }) => {
   const isPositive = data.totalProfit >= 0;
 
   return (
-    <div className="fixed left-[-9999px] top-[-9999px]">
+    <div className="fixed left-[-9999px] top-[-9999px] bg-[#030303]">
       <div 
         ref={cardRef}
         className="w-[1080px] h-[1920px] bg-[#030303] flex flex-col items-center justify-between p-20 relative overflow-hidden"
+        style={{
+          imageRendering: 'crisp-edges',
+          WebkitFontSmoothing: 'antialiased'
+        }}
       >
         {/* Cyberpunk Background Elements */}
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[30%] bg-primary/20 blur-[150px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[30%] bg-primary/10 blur-[150px] rounded-full" />
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+        <div className="absolute top-[-5%] left-[-5%] w-[60%] h-[40%] bg-primary/30 blur-[180px] rounded-full" />
+        <div className="absolute bottom-[-5%] right-[-5%] w-[60%] h-[40%] bg-primary/20 blur-[180px] rounded-full" />
         
         {/* Top Section: Logo & Brand */}
-        <div className="z-10 flex flex-col items-center space-y-6 mt-10">
+        <div className="z-10 flex flex-col items-center space-y-8 mt-16">
           <div className="relative">
-            <div className="absolute inset-0 bg-primary/40 blur-2xl rounded-full scale-150" />
-            <img src={logo} alt="Fox Trade" className="w-40 h-40 relative z-10 drop-shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)]" />
+            <div className="absolute inset-0 bg-primary/40 blur-3xl rounded-full scale-150" />
+            <div className="w-48 h-48 bg-white/5 backdrop-blur-3xl rounded-[3rem] border border-white/10 flex items-center justify-center p-6 relative z-10 shadow-2xl">
+              <img src={logo} alt="Fox Trade" className="w-full h-full object-contain filter drop-shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)]" />
+            </div>
           </div>
-          <div className="flex flex-col items-center">
-            <h1 className="text-6xl font-black text-white tracking-[0.5em] uppercase">Fox Trade</h1>
-            <div className="h-1 w-40 bg-gradient-to-r from-transparent via-primary to-transparent mt-4" />
+          <div className="flex flex-col items-center space-y-4">
+            <h1 className="text-7xl font-black text-white tracking-[0.6em] uppercase translate-x-[0.3em]">Fox Trade</h1>
+            <div className="h-1.5 w-60 bg-gradient-to-r from-transparent via-primary to-transparent" />
           </div>
         </div>
 
