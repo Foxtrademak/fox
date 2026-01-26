@@ -116,7 +116,7 @@ export const getSmartInsights = (records: DailyRecord[], reportTrades: MT5Trade[
   return insights;
 };
 
-export const calculateStatistics = (records: DailyRecord[]): Statistics => {
+export const calculateStatistics = (records: DailyRecord[], initialCapital: number = 1000): Statistics => {
   if (records.length === 0) {
     return {
       winRate: 0,
@@ -139,14 +139,14 @@ export const calculateStatistics = (records: DailyRecord[]): Statistics => {
   // Sort by date ascending for drawdown calculation
   const sortedRecords = [...records].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  let peakCapital = -Infinity;
+  let peakCapital = initialCapital;
   let maxDrawdown = 0;
   let maxDrawdownValue = 0;
-  let currentCapital = sortedRecords[0].capitalBefore; // Start from the very beginning
+  let currentCapital = initialCapital;
 
   // Drawdown Calculation
-  // We need to simulate the capital curve
-  const capitalCurve = [currentCapital];
+  // We simulate the capital curve starting from initialCapital
+  const capitalCurve = [initialCapital];
   sortedRecords.forEach(r => {
     currentCapital += r.profitLoss;
     capitalCurve.push(currentCapital);
@@ -207,44 +207,40 @@ export const calculateStatistics = (records: DailyRecord[]): Statistics => {
 export const getPeriodStats = (records: DailyRecord[]) => {
   const weeklyStats: Record<string, number> = {};
   const monthlyStats: Record<string, number> = {};
-  const dailyStats: Record<string, number> = {}; // Day of week stats
+  const dailyByDateStats: Record<string, number> = {};
 
-  records.forEach(record => {
+  // Sort records by date to ensure the daily distribution follows chronological order
+  const sortedRecords = [...records].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  sortedRecords.forEach(record => {
     const date = new Date(record.date);
     
+    // Use UTC methods to avoid timezone shifts
     // Weekly (Mon-Sun)
-    // To get Monday as start: (day + 6) % 7
-    // Sun=0, Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6
-    // (0+6)%7 = 6 (Sun)
-    // (1+6)%7 = 0 (Mon)
-    const day = date.getDay();
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(date.setDate(diff));
-    monday.setHours(0, 0, 0, 0);
-    const weekKey = `Week of ${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    const day = date.getUTCDay();
+    const diff = date.getUTCDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(date);
+    monday.setUTCDate(diff);
+    monday.setUTCHours(0, 0, 0, 0);
+    const weekKey = `Week of ${monday.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
     
     weeklyStats[weekKey] = (weeklyStats[weekKey] || 0) + record.profitLoss;
 
-    // Restore date for subsequent calculations
-    const originalDate = new Date(record.date);
-
     // Monthly
-    const monthKey = originalDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+    const monthKey = date.toLocaleString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
     monthlyStats[monthKey] = (monthlyStats[monthKey] || 0) + record.profitLoss;
 
-    // Daily (Day of Week)
-    const dayKey = originalDate.toLocaleString('en-US', { weekday: 'short' });
-    dailyStats[dayKey] = (dailyStats[dayKey] || 0) + record.profitLoss;
+    // Daily (By Date)
+    const dailyKey = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+    dailyByDateStats[dailyKey] = (dailyByDateStats[dailyKey] || 0) + record.profitLoss;
   });
-
-  const dayOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   return {
     weekly: Object.entries(weeklyStats).map(([label, profit]) => ({ label, profit, count: 0 })),
     monthly: Object.entries(monthlyStats).map(([label, profit]) => ({ label, profit, count: 0 })),
-    daily: dayOrder.map(day => ({
-      label: day,
-      profit: dailyStats[day] || 0,
+    daily: Object.entries(dailyByDateStats).map(([label, profit]) => ({
+      label,
+      profit: parseFloat(profit.toFixed(2)),
       count: 0
     })),
   };

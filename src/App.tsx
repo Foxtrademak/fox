@@ -484,35 +484,35 @@ function App() {
     localStorage.setItem('show_targets_on_home', showTargetsOnHome.toString());
   }, [records, initialCapital, weeklyTarget, monthlyTarget, showTargetsOnHome]);
 
-  const stats = useMemo(() => calculateStatistics(records), [records]);
+  const stats = useMemo(() => calculateStatistics(records, initialCapital), [records, initialCapital]);
   const periodStats = useMemo(() => getPeriodStats(records), [records]);
   const insights = useMemo(() => getSmartInsights(records, reportTrades), [records, reportTrades]);
 
   const targetProgress = useMemo(() => {
-    // Helper to get profit for current week
+    // Helper to get profit for current week (UTC)
     const getWeeklyProfit = () => {
       const now = new Date();
-      const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
-      startOfWeek.setHours(0, 0, 0, 0);
+      const startOfWeek = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      startOfWeek.setUTCDate(startOfWeek.getUTCDate() - startOfWeek.getUTCDay()); // Sunday
+      startOfWeek.setUTCHours(0, 0, 0, 0);
       
       return records.reduce((sum, record) => {
         const recordDate = new Date(record.date);
-        if (recordDate >= startOfWeek) {
+        if (recordDate.getTime() >= startOfWeek.getTime()) {
           return sum + record.profitLoss;
         }
         return sum;
       }, 0);
     };
 
-    // Helper to get profit for current month
+    // Helper to get profit for current month (UTC)
     const getMonthlyProfit = () => {
       const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
       
       return records.reduce((sum, record) => {
         const recordDate = new Date(record.date);
-        if (recordDate >= startOfMonth) {
+        if (recordDate.getTime() >= startOfMonth.getTime()) {
           return sum + record.profitLoss;
         }
         return sum;

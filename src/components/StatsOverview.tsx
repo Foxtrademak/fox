@@ -193,12 +193,22 @@ export function StatsOverview({ stats, periodStats, records, initialCapital }: S
         {/* Daily Distribution */}
         <div className="bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-[2rem] p-8 space-y-8">
           <div className="flex items-center justify-between">
-            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Daily Distribution</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Daily Distribution (Last 15 Days)</p>
             <div className="w-2 h-2 rounded-full bg-white/10" />
           </div>
           <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={periodStats.daily} margin={{ top: 5, right: 0, left: -30, bottom: 0 }}>
+              <BarChart data={periodStats.daily.slice(-15)} margin={{ top: 5, right: 0, left: -30, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="barGradientPositiveDaily" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#22c55e" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#22c55e" stopOpacity={0.2} />
+                  </linearGradient>
+                  <linearGradient id="barGradientNegativeDaily" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#ef4444" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#ef4444" stopOpacity={0.2} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.02)" vertical={false} />
                 <XAxis 
                   dataKey="label" 
@@ -220,11 +230,11 @@ export function StatsOverview({ stats, periodStats, records, initialCapital }: S
                   }}
                   itemStyle={{ color: '#ffffff' }}
                 />
-                <Bar dataKey="profit" radius={[4, 4, 0, 0]} barSize={24}>
-                  {periodStats.daily.map((entry, index) => (
+                <Bar dataKey="profit" radius={[4, 4, 0, 0]} barSize={18}>
+                  {periodStats.daily.slice(-15).map((entry, index) => (
                     <Cell 
                       key={`cell-daily-${index}`} 
-                      fill={entry.profit >= 0 ? 'url(#barGradientPositive)' : 'url(#barGradientNegative)'} 
+                      fill={entry.profit >= 0 ? 'url(#barGradientPositiveDaily)' : 'url(#barGradientNegativeDaily)'} 
                     />
                   ))}
                 </Bar>
