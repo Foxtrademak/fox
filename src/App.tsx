@@ -42,6 +42,17 @@ function App() {
   const shareCardRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  const [records, setRecords] = useState<DailyRecord[]>(() => {
+    const saved = localStorage.getItem('trade_records');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const recordsRef = useRef<DailyRecord[]>(records);
+  useEffect(() => {
+    recordsRef.current = records;
+  }, [records]);
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
     return 'Notification' in window && Notification.permission === 'granted';
   });
@@ -72,12 +83,32 @@ function App() {
 
   // Function to send local notifications
   const sendNotification = (title: string, body: string) => {
-    if (notificationsEnabled && 'Notification' in window) {
+    console.log(`Attempting to send notification: "${title}" - "${body}"`);
+    
+    if (!('Notification' in window)) {
+      console.warn('Notifications not supported in this browser');
+      return;
+    }
+
+    if (Notification.permission !== 'granted') {
+      console.warn(`Notification permission not granted (current: ${Notification.permission})`);
+      return;
+    }
+
+    if (!notificationsEnabled) {
+      console.warn('Notifications are disabled in app settings');
+      return;
+    }
+
+    try {
       new Notification(title, {
         body,
         icon: logo
       });
       haptic('medium');
+      console.log('Notification sent successfully');
+    } catch (error) {
+      console.error('Error sending notification:', error);
     }
   };
 
@@ -87,12 +118,17 @@ function App() {
       return;
     }
 
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      setNotificationsEnabled(true);
-      sendNotification('Notifications Enabled', 'You will now receive alerts regarding trading sessions and synchronization.');
-    } else {
-      setNotificationsEnabled(false);
+    try {
+      const permission = await Notification.requestPermission();
+      console.log(`Notification permission requested: ${permission}`);
+      if (permission === 'granted') {
+        setNotificationsEnabled(true);
+        sendNotification('Notifications Enabled', 'You will now receive alerts regarding trading sessions and synchronization.');
+      } else {
+        setNotificationsEnabled(false);
+      }
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
     }
   };
 
@@ -117,11 +153,6 @@ function App() {
     return () => clearInterval(timer);
   }, [currentTime, notificationsEnabled]);
 
-  const [records, setRecords] = useState<DailyRecord[]>(() => {
-    const saved = localStorage.getItem('trade_records');
-    return saved ? JSON.parse(saved) : [];
-  });
-  
   const [initialCapital, setInitialCapital] = useState<number>(() => {
     const saved = localStorage.getItem('initial_capital');
     return saved ? parseFloat(saved) : 1000;
@@ -234,6 +265,15 @@ function App() {
 
   // Sync logic: Real-time Listener from Firestore
   useEffect(() => {
+    // Check permission on mount and sync state
+    if ('Notification' in window) {
+      if (Notification.permission === 'granted' && !notificationsEnabled) {
+        setNotificationsEnabled(true);
+      } else if (Notification.permission !== 'granted' && notificationsEnabled) {
+        setNotificationsEnabled(false);
+      }
+    }
+
     let unsubscribeSnapshot: (() => void) | undefined;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
@@ -274,7 +314,7 @@ function App() {
             setIsSyncing(true); // Temporarily block outgoing sync to prevent loops
             
             if (cloudData.records) {
-              const oldLength = records.length;
+              const oldLength = recordsRef.current.length;
               const newLength = cloudData.records.length;
               if (newLength > oldLength) {
                 sendNotification('Trade Update', `${newLength - oldLength} new trades added from robot.`);
