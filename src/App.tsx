@@ -1036,10 +1036,7 @@ function App() {
               <div className={cn(
                   "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter]",
                   isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
-                )} style={{ 
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
-                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
-                }} />
+                )} />
 
               <div className={cn(
                 "relative group px-2 sm:px-0 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
@@ -1047,10 +1044,9 @@ function App() {
               )}>
                 <div className={cn(
                   "ios-card shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden",
-                  "border-[0.5px]",
                   theme === 'light' 
-                    ? "bg-primary/5 border-primary/20 shadow-black/5" 
-                    : "bg-primary/[0.03] border-primary/10 shadow-black/20",
+                    ? "bg-primary/5 shadow-black/5" 
+                    : "bg-primary/[0.03] shadow-black/20",
                   isScrolled ? "pt-1.5 pb-1.5 h-[75px] sm:h-[110px]" : "pt-6 pb-10 h-auto"
                 )}>
                   {/* Share Button */}

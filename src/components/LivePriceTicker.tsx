@@ -54,8 +54,8 @@ const LivePriceTicker: React.FC<LivePriceTickerProps> = ({ theme = 'dark' }) => 
         <div className="relative group">
           {/* Glass Card Container - Fixed Height and Overflow */}
           <div className={cn(
-            "relative backdrop-blur-xl border rounded-xl h-[40px] flex items-center shadow-lg overflow-hidden transition-all duration-300",
-            theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.02] border-white/[0.05]"
+            "relative backdrop-blur-xl h-[40px] flex items-center shadow-lg overflow-hidden transition-all duration-300",
+            theme === 'light' ? "bg-white/60" : "bg-white/[0.02]"
           )}>
             
             {/* Cyberpunk Accents */}
