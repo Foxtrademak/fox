@@ -147,7 +147,17 @@ function App() {
 
   const [records, setRecords] = useState<DailyRecord[]>(() => {
     const saved = localStorage.getItem('trade_records');
-    return saved ? JSON.parse(saved) : [];
+    if (!saved) return [];
+    try {
+      const parsed = JSON.parse(saved) as DailyRecord[];
+      return parsed.map(r => ({
+        ...r,
+        id: r.id || crypto.randomUUID(),
+        updatedAt: r.updatedAt || Date.now()
+      }));
+    } catch (e) {
+      return [];
+    }
   });
 
   const [lastLocalUpdate, setLastLocalUpdate] = useState<number>(Date.now());
@@ -285,7 +295,10 @@ function App() {
           uniqueMap.set(t.positionId, t);
         }
       });
-      return Array.from(uniqueMap.values());
+      return Array.from(uniqueMap.values()).map(t => ({
+        ...t,
+        updatedAt: t.updatedAt || Date.now()
+      }));
     } catch (e) {
       return [];
     }
@@ -378,21 +391,57 @@ function App() {
         isSyncingFromCloudRef.current = true;
 
         if (cloudData.records) {
-          const oldLength = recordsRef.current.length;
-          const newLength = cloudData.records.length;
+          const cloudRecords = cloudData.records as DailyRecord[];
+          const merged = new Map<string, DailyRecord>();
+          
+          // Add local records
+          records.forEach(r => merged.set(r.id, r));
+          
+          // Merge cloud records
+          cloudRecords.forEach(r => {
+            const existing = merged.get(r.id);
+            if (!existing || (r.updatedAt || 0) > (existing.updatedAt || 0)) {
+              merged.set(r.id, r);
+            }
+          });
+          
+          const finalRecords = Array.from(merged.values()).sort((a, b) => 
+            new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+
+          const oldLength = records.length;
+          const newLength = finalRecords.length;
           if (newLength > oldLength) {
-            sendNotification('Sync Complete', `${newLength - oldLength} new trades imported from cloud.`);
+            sendNotification('Sync Complete', `${newLength - oldLength} new records imported from cloud.`);
           }
-          setRecords(cloudData.records);
-          localStorage.setItem('trade_records', JSON.stringify(cloudData.records));
+          setRecords(finalRecords);
+          localStorage.setItem('trade_records', JSON.stringify(finalRecords));
         }
         if (cloudData.initialCapital) {
           setInitialCapital(cloudData.initialCapital);
           localStorage.setItem('initial_capital', cloudData.initialCapital.toString());
         }
         if (cloudData.reportTrades) {
-          setReportTrades(cloudData.reportTrades);
-          localStorage.setItem('report_trades', JSON.stringify(cloudData.reportTrades));
+          const cloudTrades = cloudData.reportTrades as MT5Trade[];
+          const merged = new Map<string, MT5Trade>();
+          
+          // Add local trades
+          reportTrades.forEach(t => merged.set(t.positionId, t));
+          
+          // Merge cloud trades
+          cloudTrades.forEach(t => {
+            const existing = merged.get(t.positionId);
+            if (!existing || (t.updatedAt || 0) > (existing.updatedAt || 0)) {
+              merged.set(t.positionId, t);
+            }
+          });
+          
+          const finalTrades = Array.from(merged.values()).sort((a, b) => 
+            new Date(b.closeTime).getTime() - new Date(a.closeTime).getTime()
+          );
+
+          setReportTrades(finalTrades);
+          localStorage.setItem('report_trades', JSON.stringify(finalTrades));
         }
         if (cloudData.weeklyTarget) {
           setWeeklyTarget(cloudData.weeklyTarget);
@@ -522,23 +571,57 @@ function App() {
             const isDataDifferent = hasRecordChanges || hasTradeChanges || hasSettingsChanges;
 
             if (isDataDifferent) {
-              console.log(isFirstRun ? 'Initial sync from cloud...' : 'Cloud is newer and different, performing authoritative sync...');
+              console.log(isFirstRun ? 'Initial sync from cloud...' : 'Cloud is newer and different, performing merge sync...');
               
               // Set flag to prevent push back to cloud
               isSyncingFromCloudRef.current = true;
               
-              // 1. Sync Records
+              // 1. Sync Records with Merging
               if (cloudData.records) {
                 const cloudRecords = cloudData.records as DailyRecord[];
-                setRecords(cloudRecords);
-                localStorage.setItem('trade_records', JSON.stringify(cloudRecords));
+                const merged = new Map<string, DailyRecord>();
+                
+                // Add local records
+                records.forEach(r => merged.set(r.id, r));
+                
+                // Merge cloud records
+                cloudRecords.forEach(r => {
+                  const existing = merged.get(r.id);
+                  if (!existing || (r.updatedAt || 0) > (existing.updatedAt || 0)) {
+                    merged.set(r.id, r);
+                  }
+                });
+                
+                const finalRecords = Array.from(merged.values()).sort((a, b) => 
+                  new Date(b.date).getTime() - new Date(a.date).getTime()
+                );
+
+                setRecords(finalRecords);
+                localStorage.setItem('trade_records', JSON.stringify(finalRecords));
               }
 
-              // 2. Sync Report Trades
+              // 2. Sync Report Trades with Merging
               if (cloudData.reportTrades) {
                 const cloudTrades = cloudData.reportTrades as MT5Trade[];
-                setReportTrades(cloudTrades);
-                localStorage.setItem('report_trades', JSON.stringify(cloudTrades));
+                const merged = new Map<string, MT5Trade>();
+                
+                // Add local trades
+                reportTrades.forEach(t => merged.set(t.positionId, t));
+                
+                // Merge cloud trades
+                cloudTrades.forEach(t => {
+                  const existing = merged.get(t.positionId);
+                  if (!existing || (t.updatedAt || 0) > (existing.updatedAt || 0)) {
+                    merged.set(t.positionId, t);
+                  }
+                });
+                
+                const finalTrades = Array.from(merged.values()).sort((a, b) => 
+                  new Date(b.closeTime).getTime() - new Date(a.closeTime).getTime()
+                );
+
+                setReportTrades(finalTrades);
+                localStorage.setItem('report_trades', JSON.stringify(finalTrades));
               }
 
               // 3. Sync Settings
@@ -729,7 +812,8 @@ function App() {
       capitalBefore: currentCapital,
       capitalAfter: currentCapital - amount,
       notes: withdrawalNote || 'Profit Withdrawal',
-      type: 'withdrawal'
+      type: 'withdrawal',
+      updatedAt: Date.now()
     };
 
     setRecords(prev => [newRecord, ...prev]);
@@ -762,7 +846,12 @@ function App() {
         const data = JSON.parse(event.target?.result as string);
         if (Array.isArray(data)) {
           if (confirm(`Do you want to import ${data.length} records? They will be added to your current data.`)) {
-            setRecords(prev => [...data, ...prev]);
+            const processedData = data.map((r: any) => ({
+              ...r,
+              id: r.id || crypto.randomUUID(),
+              updatedAt: r.updatedAt || Date.now()
+            }));
+            setRecords(prev => [...processedData, ...prev]);
           }
         }
       } catch (err) {
@@ -1046,7 +1135,8 @@ function App() {
                 commission: parseFloat(commission.toFixed(2)),
                 swap: parseFloat(swap.toFixed(2)),
                 closeTime: time || new Date().toISOString(),
-                status: (profit + commission + swap) > 0 ? 'Win' : 'Loss'
+                status: (profit + commission + swap) > 0 ? 'Win' : 'Loss',
+                updatedAt: Date.now()
               });
             }
           }
@@ -1134,7 +1224,8 @@ function App() {
           totalSwap: parseFloat(data.swap.toFixed(2)),
           symbols: Array.from(data.symbols)
         },
-        notes: `MT5 Import: ${data.count} trades (${data.winCount}W/${data.lossCount}L) - ${Array.from(data.symbols).join(', ')}`
+        notes: `MT5 Import: ${data.count} trades (${data.winCount}W/${data.lossCount}L) - ${Array.from(data.symbols).join(', ')}`,
+        updatedAt: Date.now()
       };
     });
 

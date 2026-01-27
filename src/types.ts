@@ -7,6 +7,7 @@ export interface DailyRecord {
   notes?: string;
   isMT5Import?: boolean;
   type?: 'trade' | 'withdrawal';
+  updatedAt: number; // Timestamp for merging
   mt5Details?: {
     tradeCount: number;
     winCount: number;
@@ -27,6 +28,7 @@ export interface MT5Trade {
   swap: number;
   closeTime: string;
   status: 'Win' | 'Loss';
+  updatedAt: number; // Timestamp for merging
 }
 
 export interface AppState {
