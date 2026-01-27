@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 // Force Update v36.0
-import { Wallet, RotateCcw, Download, Upload, Lock, LayoutGrid, BarChart3, Settings, X, Clock, FileSpreadsheet, TrendingUp, TrendingDown, LogOut, AlertTriangle, Target, Trophy, Info, Trash2, Cloud, RefreshCcw, Share2, Sparkles, Bell, BellOff, Sun, Moon } from 'lucide-react';
+import { Wallet, RotateCcw, Download, Upload, Lock, LayoutGrid, BarChart3, Settings, X, Clock, FileSpreadsheet, TrendingUp, TrendingDown, LogOut, AlertTriangle, Target, Trophy, Info, Trash2, Cloud, RefreshCcw, Share2, Sparkles, Bell, BellOff, Sun, Moon, FileText, Calendar } from 'lucide-react';
 import { cn, haptic } from './lib/utils';
 import { type DailyRecord, type MT5Trade } from './types';
 import * as XLSX from 'xlsx';
@@ -32,14 +32,12 @@ function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [isLocked, setIsLocked] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    try {
-      const saved = localStorage.getItem('app_theme');
-      return (saved === 'light' || saved === 'dark') ? saved : 'dark';
-    } catch (e) {
-      return 'dark';
-    }
-  });
+  const [theme] = useState<'light' | 'dark'>('dark');
+
+  useEffect(() => {
+    document.documentElement.classList.remove('light');
+    localStorage.setItem('app_theme', 'dark');
+  }, []);
 
   useEffect(() => {
     let ticking = false;
@@ -72,36 +70,28 @@ function App() {
     if (main) main.scrollTo(0, 0);
   }, [activeTab]);
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    localStorage.setItem('app_theme', newTheme);
-    haptic('medium');
-    
-    if (newTheme === 'light') {
-      document.documentElement.classList.add('light');
-    } else {
-      document.documentElement.classList.remove('light');
-    }
-  };
-
-  useEffect(() => {
-    if (theme === 'light') {
-      document.documentElement.classList.add('light');
-    } else {
-      document.documentElement.classList.remove('light');
-    }
-  }, [theme]);
   const [, setPassword] = useState(() => localStorage.getItem('app_passcode') || '2525');
   const [isChangingPass, setIsChangingPass] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [newPass, setNewPass] = useState('');
-  const [confirmAction, setConfirmAction] = useState<{ type: 'reload' | 'reset', title: string, message: string } | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ type: 'reload' | 'reset' | 'reset_reports' | 'reset_reports_date', title: string, message: string } | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isPushing, setIsPushing] = useState(false);
+  const isSyncingFromCloudRef = useRef(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  const getFormattedDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    // Handle ISO format (2024-01-27T...) or MT5 format (2024.01.27 12:00:00)
+    if (dateStr.includes('T')) {
+      return dateStr.split('T')[0];
+    }
+    // MT5 format usually uses dots or spaces
+    return dateStr.split(' ')[0].replace(/\./g, '-');
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -158,9 +148,14 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [lastLocalUpdate, setLastLocalUpdate] = useState<number>(Date.now());
   const recordsRef = useRef<DailyRecord[]>(records);
+  const lastLocalUpdateTimeRef = useRef<number>(Date.now());
+  
   useEffect(() => {
     recordsRef.current = records;
+    lastLocalUpdateTimeRef.current = Date.now();
+    setLastLocalUpdate(Date.now());
   }, [records]);
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
@@ -293,8 +288,16 @@ function App() {
       return [];
     }
   });
+
+  const reportTradesRef = useRef<MT5Trade[]>(reportTrades);
+  useEffect(() => {
+    reportTradesRef.current = reportTrades;
+  }, [reportTrades]);
   const [reportSortOrder, setReportSortOrder] = useState<'desc' | 'asc'>('desc');
   const [reportDateFilter, setReportDateFilter] = useState<string>('');
+  const [reportDeleteDate, setReportDeleteDate] = useState<string>('');
+  const reportFilterInputRef = useRef<HTMLInputElement>(null);
+  const reportDeleteInputRef = useRef<HTMLInputElement>(null);
   const [reportSearchQuery] = useState<string>('');
   const [reportStatusFilter, setReportStatusFilter] = useState<'all' | 'win' | 'loss'>('all');
 
@@ -369,6 +372,9 @@ function App() {
         const cloudData = snapshot.data();
         console.log("Manual sync: Data received from cloud");
         
+        // Set flag to prevent push back to cloud
+        isSyncingFromCloudRef.current = true;
+
         if (cloudData.records) {
           const oldLength = recordsRef.current.length;
           const newLength = cloudData.records.length;
@@ -394,6 +400,15 @@ function App() {
           setMonthlyTarget(cloudData.monthlyTarget);
           localStorage.setItem('monthly_target', cloudData.monthlyTarget.toString());
         }
+        if (cloudData.showTargetsOnHome !== undefined) {
+          setShowTargetsOnHome(cloudData.showTargetsOnHome);
+          localStorage.setItem('show_targets_on_home', cloudData.showTargetsOnHome.toString());
+        }
+        
+        lastLocalUpdateTimeRef.current = Date.now();
+        setTimeout(() => {
+          isSyncingFromCloudRef.current = false;
+        }, 5000);
         
         sendNotification('Sync Successful', 'Your data is now up to date with the cloud.');
       } else {
@@ -404,6 +419,7 @@ function App() {
           reportTrades,
           weeklyTarget,
           monthlyTarget,
+          showTargetsOnHome,
           lastSynced: new Date().toISOString()
         });
         sendNotification('Cloud Initialized', 'Your local data has been backed up to the cloud.');
@@ -438,9 +454,11 @@ function App() {
 
   // Sync logic: Push to Firestore on local changes
   useEffect(() => {
-    if (user && !isSyncing) {
+    // Only push if there's a user and we're NOT currently syncing FROM cloud
+    if (user && !isSyncing && !isSyncingFromCloudRef.current) {
       const syncData = async () => {
         try {
+          setIsPushing(true);
           const docRef = doc(db, 'users', user.uid);
           await setDoc(docRef, {
             records,
@@ -448,24 +466,34 @@ function App() {
             reportTrades,
             weeklyTarget,
             monthlyTarget,
+            showTargetsOnHome,
             lastSynced: new Date().toISOString()
           }, { merge: true });
         } catch (error) {
           console.error('Sync to cloud error:', error);
+        } finally {
+          setIsPushing(false);
         }
       };
       
       const timeoutId = setTimeout(syncData, 2000); // Debounce sync
       return () => clearTimeout(timeoutId);
     }
-  }, [records, initialCapital, reportTrades, weeklyTarget, monthlyTarget, user, isSyncing]);
+  }, [records, initialCapital, reportTrades, weeklyTarget, monthlyTarget, showTargetsOnHome, user, isSyncing]);
 
   // Automatic Cloud Fetch every 30 seconds
   useEffect(() => {
     if (!user) return;
 
+    let isFirstRun = true;
+
     const autoFetch = async () => {
-      if (isSyncing) return;
+      if (isSyncing || isPushing) return;
+      
+      // Skip auto-fetch if we recently updated locally (within last 15s) 
+      // to avoid race conditions with deletions and local state updates
+      // UNLESS it's the first run, then we always want to fetch
+      if (!isFirstRun && Date.now() - lastLocalUpdateTimeRef.current < 15000) return;
       
       try {
         const docRef = doc(db, 'users', user.uid);
@@ -473,35 +501,75 @@ function App() {
         
         if (snapshot.exists()) {
           const cloudData = snapshot.data();
-          
-          if (cloudData.records && JSON.stringify(cloudData.records) !== JSON.stringify(recordsRef.current)) {
-            setRecords(cloudData.records);
-            localStorage.setItem('trade_records', JSON.stringify(cloudData.records));
-          }
-          if (cloudData.initialCapital !== undefined && cloudData.initialCapital !== parseFloat(localStorage.getItem('initial_capital') || '0')) {
-            setInitialCapital(cloudData.initialCapital);
-            localStorage.setItem('initial_capital', cloudData.initialCapital.toString());
-          }
-          if (cloudData.weeklyTarget !== undefined && cloudData.weeklyTarget !== parseFloat(localStorage.getItem('weekly_target') || '0')) {
-            setWeeklyTarget(cloudData.weeklyTarget);
-            localStorage.setItem('weekly_target', cloudData.weeklyTarget.toString());
-          }
-          if (cloudData.monthlyTarget !== undefined && cloudData.monthlyTarget !== parseFloat(localStorage.getItem('monthly_target') || '0')) {
-            setMonthlyTarget(cloudData.monthlyTarget);
-            localStorage.setItem('monthly_target', cloudData.monthlyTarget.toString());
+          const cloudLastSynced = cloudData.lastSynced ? new Date(cloudData.lastSynced).getTime() : 0;
+
+          // AUTHORITATIVE SYNC: 
+          // If Cloud is newer than our last local update, we REPLACE local state with Cloud.
+          // Or if it's the first run, we take the cloud data if it exists.
+          if (isFirstRun || cloudLastSynced > lastLocalUpdateTimeRef.current + 2000) { 
+            console.log(isFirstRun ? 'Initial sync from cloud...' : 'Cloud is newer, performing authoritative sync...');
+            
+            // Set flag to prevent push back to cloud
+            isSyncingFromCloudRef.current = true;
+            
+            // 1. Sync Records
+            if (cloudData.records) {
+              const cloudRecords = cloudData.records as DailyRecord[];
+              setRecords(cloudRecords);
+              localStorage.setItem('trade_records', JSON.stringify(cloudRecords));
+            }
+
+            // 2. Sync Report Trades
+            if (cloudData.reportTrades) {
+              const cloudTrades = cloudData.reportTrades as MT5Trade[];
+              setReportTrades(cloudTrades);
+              localStorage.setItem('report_trades', JSON.stringify(cloudTrades));
+            }
+
+            // 3. Sync Settings
+            if (cloudData.initialCapital !== undefined) {
+              setInitialCapital(cloudData.initialCapital);
+              localStorage.setItem('initial_capital', cloudData.initialCapital.toString());
+            }
+            if (cloudData.weeklyTarget !== undefined) {
+              setWeeklyTarget(cloudData.weeklyTarget);
+              localStorage.setItem('weekly_target', cloudData.weeklyTarget.toString());
+            }
+            if (cloudData.monthlyTarget !== undefined) {
+              setMonthlyTarget(cloudData.monthlyTarget);
+              localStorage.setItem('monthly_target', cloudData.monthlyTarget.toString());
+            }
+            if (cloudData.showTargetsOnHome !== undefined) {
+              setShowTargetsOnHome(cloudData.showTargetsOnHome);
+              localStorage.setItem('show_targets_on_home', cloudData.showTargetsOnHome.toString());
+            }
+
+            if (!isFirstRun) {
+              sendNotification('Cloud Sync', 'Data updated from other device.');
+            }
+            lastLocalUpdateTimeRef.current = Date.now(); 
+            
+            // Reset flag after states are updated (useEffect will trigger after this)
+            // We use a small timeout to ensure the push useEffect sees the flag
+            setTimeout(() => {
+              isSyncingFromCloudRef.current = false;
+            }, 5000);
           }
         }
+        isFirstRun = false;
       } catch (error) {
         console.error('Auto-fetch error:', error);
       }
     };
 
+    autoFetch(); // Run immediately on mount
     const intervalId = setInterval(autoFetch, 30000); // 30 seconds
     return () => clearInterval(intervalId);
   }, [user]);
 
   useEffect(() => {
     localStorage.setItem('report_trades', JSON.stringify(reportTrades));
+    lastLocalUpdateTimeRef.current = Date.now();
   }, [reportTrades]);
 
   useEffect(() => {
@@ -686,12 +754,102 @@ function App() {
   };
 
   const handleResetAllData = () => {
-    if (confirm('⚠️ Warning: All records will be deleted and capital reset. This cannot be undone! Are you sure?')) {
-      setRecords([]);
-      setInitialCapital(1000);
-      localStorage.clear();
-      window.location.reload();
+    setRecords([]);
+    setInitialCapital(1000);
+    localStorage.clear();
+    window.location.reload();
+  };
+
+  const handleDeleteMT5Reports = () => {
+    // Delete all report trades
+    setReportTrades([]);
+    
+    // Also delete all corresponding DailyRecords (we'll keep manual ones if you prefer, 
+    // but the user said "everything", so let's clear all MT5 related stuff)
+    const updatedRecords = records.filter(record => !record.isMT5Import);
+    setRecords(updatedRecords);
+
+    localStorage.setItem('report_trades', JSON.stringify([]));
+    localStorage.setItem('trade_records', JSON.stringify(updatedRecords));
+    
+    // Force immediate sync
+    if (user) {
+      const syncImmediately = async () => {
+        try {
+          setIsPushing(true);
+          const docRef = doc(db, 'users', user.uid);
+          await setDoc(docRef, {
+            records: updatedRecords,
+            reportTrades: [],
+            lastSynced: new Date().toISOString()
+          }, { merge: true });
+        } catch (error) {
+          console.error('Immediate sync error:', error);
+        } finally {
+          setIsPushing(false);
+        }
+      };
+      syncImmediately();
     }
+    
+    haptic('heavy');
+    sendNotification('Reports Cleared', 'All MT5 trade reports and corresponding history cards have been deleted.');
+  };
+
+  const handleDeleteMT5ReportsByDate = () => {
+    if (!reportDeleteDate) return;
+    
+    // 1. Delete from reportTrades
+    const updatedTrades = reportTrades.filter(trade => {
+      return getFormattedDate(trade.closeTime) !== reportDeleteDate;
+    });
+    
+    const deletedTradesCount = reportTrades.length - updatedTrades.length;
+    
+    // 2. Delete corresponding DailyRecords for this date
+    // We remove the isMT5Import check to ensure everything for that date is cleared as requested
+    const updatedRecords = records.filter(record => {
+      const recordDate = getFormattedDate(record.date);
+      return recordDate !== reportDeleteDate;
+    });
+    
+    const deletedRecordsCount = records.length - updatedRecords.length;
+
+    if (deletedTradesCount === 0 && deletedRecordsCount === 0) {
+      sendNotification('No Reports Found', `No reports found for the date ${reportDeleteDate}.`);
+      return;
+    }
+    
+    // Update state and localStorage
+    setReportTrades(updatedTrades);
+    setRecords(updatedRecords);
+    
+    localStorage.setItem('report_trades', JSON.stringify(updatedTrades));
+    localStorage.setItem('trade_records', JSON.stringify(updatedRecords));
+    
+    // Force immediate sync to cloud to prevent auto-fetch race condition
+    if (user) {
+      const syncImmediately = async () => {
+        try {
+          setIsPushing(true);
+          const docRef = doc(db, 'users', user.uid);
+          await setDoc(docRef, {
+            records: updatedRecords,
+            reportTrades: updatedTrades,
+            lastSynced: new Date().toISOString()
+          }, { merge: true });
+        } catch (error) {
+          console.error('Immediate sync error:', error);
+        } finally {
+          setIsPushing(false);
+        }
+      };
+      syncImmediately();
+    }
+    
+    haptic('heavy');
+    sendNotification('Reports Cleared', `Deleted ${deletedTradesCount} trades and ${deletedRecordsCount} records for ${reportDeleteDate}.`);
+    setReportDeleteDate('');
   };
 
   const handleImportMT5 = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -920,15 +1078,7 @@ function App() {
     // Group trades by date to create DailyRecords
     const groupedByDate = mt5Preview.trades.reduce((acc: Record<string, { profit: number, symbols: Set<string>, count: number, winCount: number, lossCount: number, commission: number, swap: number }>, trade) => {
       // Parse MT5 time (format is usually YYYY.MM.DD HH:MM:SS)
-      let dateStr = '';
-      try {
-        const parts = trade.closeTime.split(' ');
-        const datePart = parts[0].replace(/\./g, '-'); // YYYY.MM.DD -> YYYY-MM-DD
-        dateStr = new Date(datePart).toISOString().split('T')[0];
-      } catch (e) {
-        // Fallback for other formats
-        dateStr = new Date().toISOString().split('T')[0];
-      }
+      const dateStr = getFormattedDate(trade.closeTime) || new Date().toISOString().split('T')[0];
       
       if (!acc[dateStr]) {
         acc[dateStr] = { profit: 0, symbols: new Set(), count: 0, winCount: 0, lossCount: 0, commission: 0, swap: 0 };
@@ -946,31 +1096,33 @@ function App() {
       return acc;
     }, {});
 
-    const newRecords: DailyRecord[] = Object.entries(groupedByDate).map(([date, data]) => ({
-      id: crypto.randomUUID(),
-      date: new Date(date).toISOString(),
-      profitLoss: parseFloat(data.profit.toFixed(2)),
-      capitalBefore: 0,
-      capitalAfter: 0,
-      isMT5Import: true,
-      mt5Details: {
-        tradeCount: data.count,
-        winCount: data.winCount,
-        lossCount: data.lossCount,
-        totalCommission: parseFloat(data.commission.toFixed(2)),
-        totalSwap: parseFloat(data.swap.toFixed(2)),
-        symbols: Array.from(data.symbols)
-      },
-      notes: `MT5 Import: ${data.count} trades (${data.winCount}W/${data.lossCount}L) - ${Array.from(data.symbols).join(', ')}`
-    }));
+    const newRecords: DailyRecord[] = Object.entries(groupedByDate).map(([date, data]) => {
+      // Create a local date string to avoid UTC shifts
+      const recordDate = `${date}T12:00:00.000Z`; // Set to noon to avoid day shifts in most timezones
+      return {
+        id: crypto.randomUUID(),
+        date: recordDate,
+        profitLoss: parseFloat(data.profit.toFixed(2)),
+        capitalBefore: 0,
+        capitalAfter: 0,
+        isMT5Import: true,
+        mt5Details: {
+          tradeCount: data.count,
+          winCount: data.winCount,
+          lossCount: data.lossCount,
+          totalCommission: parseFloat(data.commission.toFixed(2)),
+          totalSwap: parseFloat(data.swap.toFixed(2)),
+          symbols: Array.from(data.symbols)
+        },
+        notes: `MT5 Import: ${data.count} trades (${data.winCount}W/${data.lossCount}L) - ${Array.from(data.symbols).join(', ')}`
+      };
+    });
 
     // Check for duplicates (existing records with same date)
-    const existingDates = new Set(records.map(r => new Date(r.date).toISOString().split('T')[0]));
+    const existingDates = new Set(records.map(r => getFormattedDate(r.date)));
     const uniqueNewRecords = newRecords.filter(nr => {
-      const d = new Date(nr.date).toISOString().split('T')[0];
+      const d = getFormattedDate(nr.date);
       if (existingDates.has(d)) {
-        // Optional: Merge or skip? Let's skip and alert for now, or merge?
-        // User said "check for duplicates". Let's skip if exact date exists to avoid double entry.
         return false;
       }
       return true;
@@ -1019,6 +1171,9 @@ function App() {
       case 'home':
         return (
           <div className="space-y-6 animate-fade-in pb-32">
+            {/* Gradient Blur Effect - Positioned behind sticky header */}
+            <div className={cn("gradient-blur-header", isScrolled && "is-scrolled")} style={{ zIndex: 90 }} />
+
             {/* Live Prices Ticker */}
             <div className={cn(
               "transition-all duration-500",
@@ -1032,8 +1187,14 @@ function App() {
                 "sticky top-0 z-[100] transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
                 isScrolled ? "pt-2 pb-0" : "pt-0 pb-2"
               )}>
-              {/* Transparent Mask - Removed to eliminate lines */}
-              <div className="fixed inset-x-0 top-0 h-[120px] -z-10 pointer-events-none" />
+              {/* Transparent Mask - Provides smooth blur transition behind sticky elements */}
+              <div className={cn(
+                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter] pointer-events-none",
+                  isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
+                )} style={{ 
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
+                }} />
 
               <div className={cn(
                 "relative group px-2 sm:px-0 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
@@ -1046,6 +1207,18 @@ function App() {
                     : "bg-primary/[0.03] shadow-none",
                   isScrolled ? "pt-1.5 pb-1.5 h-[75px] sm:h-[110px]" : "pt-6 pb-10 h-auto shadow-2xl"
                 )}>
+                  {/* Bottom Blur Effect for Card on scroll - Hidden to avoid double blur */}
+                  <div className={cn(
+                    "absolute inset-x-0 bottom-0 h-1/2 pointer-events-none transition-opacity duration-700 hidden",
+                    isScrolled ? "opacity-100" : "opacity-0"
+                  )} style={{
+                    background: theme === 'dark' 
+                      ? 'linear-gradient(to bottom, transparent, rgba(5, 5, 7, 0.4))'
+                      : 'linear-gradient(to bottom, transparent, rgba(248, 249, 250, 0.4))',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
+                  }} />
+
                   {/* Share Button */}
                   <div className={cn(
                     "absolute top-3 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-4 sm:right-4 z-50 transition-all duration-500",
@@ -1301,10 +1474,10 @@ function App() {
                   <div 
                     key={index}
                     className={cn(
-                      "group relative p-5 rounded-[2rem] border overflow-hidden transition-all duration-500 hover:scale-[1.02] backdrop-blur-xl",
-                      insight.type === 'success' ? (theme === 'light' ? "bg-green-500/15 border-green-500/30 shadow-sm" : "bg-green-500/[0.03] border-green-500/10 hover:bg-green-500/[0.05]") :
-                      insight.type === 'warning' ? (theme === 'light' ? "bg-red-500/15 border-red-500/30 shadow-sm" : "bg-red-500/[0.03] border-red-500/10 hover:bg-red-500/[0.05]") :
-                      (theme === 'light' ? "bg-blue-500/15 border-blue-500/30 shadow-sm" : "bg-blue-500/[0.03] border-blue-500/10 hover:bg-blue-500/[0.05]")
+                      "ios-card group relative transition-all duration-500 hover:scale-[1.02]",
+                      insight.type === 'success' ? (theme === 'light' ? "bg-green-500/15 border-green-500/30" : "bg-green-500/[0.03] border-green-500/10 hover:bg-green-500/[0.05]") :
+                      insight.type === 'warning' ? (theme === 'light' ? "bg-red-500/15 border-red-500/30" : "bg-red-500/[0.03] border-red-500/10 hover:bg-red-500/[0.05]") :
+                      (theme === 'light' ? "bg-blue-500/15 border-blue-500/30" : "bg-blue-500/[0.03] border-blue-500/10 hover:bg-blue-500/[0.05]")
                     )}
                   >
                     <div className="flex items-start justify-between mb-4">
@@ -1417,8 +1590,8 @@ function App() {
                   <div 
                     key={record.id} 
                     className={cn(
-                      "flex items-center gap-5 border rounded-[1.8rem] p-5 transition-all group shadow-xl",
-                      theme === 'light' ? "bg-white/40 border-white/50 hover:bg-white/60" : "bg-white/[0.02] backdrop-blur-md hover:bg-white/[0.04] border border-white/[0.05]"
+                      "ios-card flex items-center gap-5 p-5 transition-all group shadow-xl !rounded-[2rem]",
+                      theme === 'light' ? "bg-white/40 hover:bg-white/60" : "bg-white/[0.02] hover:bg-white/[0.04]"
                     )}
                   >
                     <div className={cn(
@@ -1507,7 +1680,7 @@ function App() {
       case 'reports': {
         // Group trades and withdrawals by date
         const filteredTrades = reportTrades.filter(trade => {
-          const date = trade.closeTime.split(' ')[0].replace(/\./g, '-');
+          const date = getFormattedDate(trade.closeTime);
           const matchesDate = !reportDateFilter || date === reportDateFilter;
           const matchesSearch = !reportSearchQuery || 
             trade.symbol.toLowerCase().includes(reportSearchQuery.toLowerCase()) ||
@@ -1533,7 +1706,7 @@ function App() {
 
         // Calculate counts
         const filteredForCounts = reportTrades.filter(trade => {
-          const date = trade.closeTime.split(' ')[0].replace(/\./g, '-');
+          const date = getFormattedDate(trade.closeTime);
           const matchesDate = !reportDateFilter || date === reportDateFilter;
           const matchesSearch = !reportSearchQuery || 
             trade.symbol.toLowerCase().includes(reportSearchQuery.toLowerCase()) ||
@@ -1562,7 +1735,9 @@ function App() {
         });
 
         const itemsByDate = combinedItems.reduce((acc: Record<string, { items: CombinedItem[], dailyPL: number }>, item) => {
-          const date = item.type === 'trade' ? item.data.closeTime.split(' ')[0].replace(/\./g, '-') : item.data.date.split('T')[0];
+          const date = item.type === 'trade' 
+            ? getFormattedDate(item.data.closeTime)
+            : item.data.date.split('T')[0];
           if (!acc[date]) acc[date] = { items: [], dailyPL: 0 };
           acc[date].items.push(item);
           if (item.type === 'trade') {
@@ -1580,13 +1755,22 @@ function App() {
 
         return (
           <div className="space-y-10 animate-fade-in pb-32">
+            {/* Gradient Blur Effect - Unified implementation for all pages */}
+            <div className={cn("gradient-blur-header", isScrolled && "is-scrolled")} style={{ zIndex: 90 }} />
+
             {/* Sticky Header Section - Trade Report Header and Filters */}
             <div className={cn(
                 "sticky top-0 z-[100] transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
                 isScrolled ? "pt-2 pb-0" : "pt-0 pb-2"
               )}>
-              {/* Transparent Mask - Removed to eliminate lines */}
-              <div className="fixed inset-x-0 top-0 h-[120px] -z-10 pointer-events-none" />
+              {/* Transparent Mask - Provides smooth blur transition behind sticky elements */}
+              <div className={cn(
+                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter] pointer-events-none",
+                  isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
+                )} style={{ 
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
+                }} />
 
               <div className={cn(
                 "flex flex-col items-center justify-center transition-all duration-700",
@@ -1607,8 +1791,8 @@ function App() {
                   isScrolled ? "scale-[0.92] sm:scale-[0.95]" : "scale-100"
                 )}>
                   <div className={cn(
-                    "border rounded-[2rem] p-2 sm:p-3 backdrop-blur-md shadow-2xl transition-all duration-700",
-                    theme === 'light' ? "bg-white/40 border-white/50" : "bg-white/[0.02] border-white/[0.05]",
+                    "ios-card !rounded-[2rem] p-2 sm:p-3 shadow-2xl transition-all duration-700",
+                    theme === 'light' ? "bg-white/40" : "bg-white/[0.02]",
                     isScrolled ? "h-auto" : "h-auto"
                   )}>
                     <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
@@ -1701,20 +1885,32 @@ function App() {
                         </button>
 
                         {/* Date Filter */}
-                        <div className={cn(
-                          "flex-1 lg:flex-none relative group flex items-center gap-3 px-5 py-3 rounded-2xl transition-all",
-                          theme === 'light' ? "bg-white/40 border border-white/50 hover:bg-white/60" : "bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05]"
-                        )}>
+                        <div 
+                          onClick={() => {
+                            haptic('light');
+                            try {
+                              // @ts-ignore
+                              reportFilterInputRef.current?.showPicker();
+                            } catch (e) {
+                              reportFilterInputRef.current?.click();
+                            }
+                          }}
+                          className={cn(
+                            "flex-1 lg:flex-none relative group flex items-center gap-3 px-5 py-3 rounded-2xl transition-all cursor-pointer",
+                            theme === 'light' ? "bg-white/40 border border-white/50 hover:bg-white/60" : "bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05]"
+                          )}
+                        >
                           <div className="w-5 h-5 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20 group-hover:scale-110 transition-transform">
-                            <Clock className="w-3 h-3 text-amber-500" />
+                            <Calendar className="w-3 h-3 text-amber-500" />
                           </div>
                           <input 
+                            ref={reportFilterInputRef}
                             type="date" 
                             value={reportDateFilter}
                             onChange={(e) => {
                               setReportDateFilter(e.target.value);
-                              haptic('light');
                             }}
+                            onClick={(e) => e.stopPropagation()}
                             className={cn(
                               "bg-transparent text-[10px] font-black uppercase tracking-widest outline-none cursor-pointer w-full lg:w-auto",
                               theme === 'light' ? "text-slate-600 [color-scheme:light]" : "text-white/60 [color-scheme:dark]"
@@ -1745,8 +1941,8 @@ function App() {
 
             {combinedItems.length === 0 ? (
               <div className={cn(
-                "flex flex-col items-center justify-center py-20 rounded-[2.5rem] border-dashed",
-                theme === 'light' ? "bg-white/30 border-white/50" : "bg-white/[0.01] border-white/[0.03]"
+                "ios-card flex flex-col items-center justify-center py-20 border-dashed",
+                theme === 'light' ? "bg-white/30" : "bg-white/[0.01]"
               )}>
                 <FileSpreadsheet className={cn("w-16 h-16 mb-4", theme === 'light' ? "text-slate-300" : "text-white/5")} />
                 <p className={cn("font-black uppercase tracking-widest text-[10px]", theme === 'light' ? "text-slate-400" : "text-white/20")}>No activity found</p>
@@ -1778,8 +1974,8 @@ function App() {
                       {itemsByDate[date].items.map((item, i) => (
                         item.type === 'trade' ? (
                           <div key={i} className={cn(
-                            "group relative rounded-2xl p-4 transition-all duration-300 backdrop-blur-xl",
-                            theme === 'light' ? "bg-white/60 border border-white/60 shadow-sm hover:bg-white/80" : "bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04]"
+                            "ios-card-mini group relative transition-all duration-300",
+                            theme === 'light' ? "bg-white/60 hover:bg-white/80" : "bg-white/[0.02] hover:bg-white/[0.04]"
                           )}>
                             <div className="flex justify-between items-start mb-2 sm:mb-3">
                               <div className={cn(
@@ -1819,8 +2015,8 @@ function App() {
                           </div>
                         ) : (
                           <div key={i} className={cn(
-                            "group relative rounded-2xl p-4 transition-all duration-300 backdrop-blur-xl",
-                            theme === 'light' ? "bg-amber-500/15 border border-amber-500/30 hover:bg-amber-500/20" : "bg-white/[0.02] border border-amber-500/20 hover:bg-white/[0.04]"
+                            "ios-card-mini group relative transition-all duration-300",
+                            theme === 'light' ? "bg-amber-500/15 hover:bg-amber-500/20" : "bg-white/[0.02] hover:bg-white/[0.04]"
                           )}>
                             <div className="flex justify-between items-start mb-2 sm:mb-3">
                               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-500/10 flex items-center justify-center relative">
@@ -1874,17 +2070,26 @@ function App() {
       case 'settings':
         return (
           <div className="space-y-8 animate-fade-in pb-40 px-4">
+            {/* Gradient Blur Effect - Unified implementation for all pages */}
+            <div className={cn("gradient-blur-header", isScrolled && "is-scrolled")} style={{ zIndex: 90 }} />
+
             {/* Header Section */}
             <div className={cn(
                 "sticky top-0 z-[100] transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
                 isScrolled ? "pt-2 pb-0" : "pt-0 pb-2"
               )}>
-              {/* Transparent Mask - Removed to eliminate lines */}
-              <div className="fixed inset-x-0 top-0 h-[120px] -z-10 pointer-events-none" />
+              {/* Transparent Mask - Provides smooth blur transition behind sticky elements */}
+              <div className={cn(
+                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter] pointer-events-none",
+                  isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
+                )} style={{ 
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
+                }} />
 
               <div className={cn(
-                "flex flex-col items-center mb-8 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
-                isScrolled ? "scale-90 translate-y-2" : "scale-100 translate-y-0"
+                "flex flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                isScrolled ? "opacity-0 h-0 overflow-hidden mb-0 scale-90" : "opacity-100 h-auto mb-8 scale-100"
               )}>
                 <div className={cn(
                   "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-xl shadow-2xl relative group transition-all duration-700",
@@ -1919,8 +2124,8 @@ function App() {
             )}>
               {/* Profile & Cloud Section */}
               <div className={cn(
-                "rounded-[2.5rem] p-6 backdrop-blur-md transition-all duration-300",
-                theme === 'light' ? "bg-white/60 border border-white/60 shadow-sm" : "bg-white/[0.02] border border-white/[0.05]"
+                "ios-card transition-all duration-300",
+                theme === 'light' ? "bg-white/60" : "bg-white/[0.02]"
               )}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-6">
                 <div className="flex items-center gap-4">
@@ -1987,8 +2192,8 @@ function App() {
               <button 
                 onClick={() => { setIsEditingInitial(true); haptic('medium'); }}
                 className={cn(
-                  "group p-6 rounded-[2rem] flex flex-col items-start gap-4 backdrop-blur-md transition-all active:scale-95 text-left",
-                  theme === 'light' ? "bg-white/60 border border-white/60 shadow-sm hover:bg-white/80" : "bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05]"
+                  "ios-card group flex flex-col items-start gap-4 transition-all active:scale-95 text-left",
+                  theme === 'light' ? "bg-white/60 hover:bg-white/80" : "bg-white/[0.02] hover:bg-white/[0.05]"
                 )}
               >
                 <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform">
@@ -2007,8 +2212,8 @@ function App() {
               <button 
                 onClick={() => { setIsChangingPass(true); haptic('medium'); }}
                 className={cn(
-                  "group p-6 rounded-[2rem] flex flex-col items-start gap-4 backdrop-blur-md transition-all active:scale-95 text-left",
-                  theme === 'light' ? "bg-white/60 border border-white/60 shadow-sm hover:bg-white/80" : "bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05]"
+                  "ios-card group flex flex-col items-start gap-4 transition-all active:scale-95 text-left",
+                  theme === 'light' ? "bg-white/60 hover:bg-white/80" : "bg-white/[0.02] hover:bg-white/[0.05]"
                 )}
               >
                 <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center border border-amber-500/20 group-hover:scale-110 transition-transform">
@@ -2027,8 +2232,8 @@ function App() {
               <button 
                 onClick={() => { setIsEditingTargets(true); haptic('medium'); }}
                 className={cn(
-                  "group p-6 rounded-[2rem] flex flex-col items-start gap-4 backdrop-blur-md transition-all active:scale-95 text-left",
-                  theme === 'light' ? "bg-white/60 border border-white/60 shadow-sm hover:bg-white/80" : "bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05]"
+                  "ios-card group flex flex-col items-start gap-4 transition-all active:scale-95 text-left",
+                  theme === 'light' ? "bg-white/60 hover:bg-white/80" : "bg-white/[0.02] hover:bg-white/[0.05]"
                 )}
               >
                 <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20 group-hover:scale-110 transition-transform">
@@ -2047,8 +2252,8 @@ function App() {
               <button 
                 onClick={() => { requestNotificationPermission(); haptic('medium'); }}
                 className={cn(
-                  "group p-6 rounded-[2rem] flex flex-col items-start gap-4 backdrop-blur-md transition-all active:scale-95 text-left",
-                  theme === 'light' ? "bg-white/60 border border-white/60 shadow-sm hover:bg-white/80" : "bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05]"
+                  "ios-card group flex flex-col items-start gap-4 transition-all active:scale-95 text-left",
+                  theme === 'light' ? "bg-white/60 hover:bg-white/80" : "bg-white/[0.02] hover:bg-white/[0.05]"
                 )}
               >
                 <div className={cn(
@@ -2079,8 +2284,8 @@ function App() {
               <button 
                 onClick={() => { handleExportJSON(); haptic('medium'); }}
                 className={cn(
-                  "p-5 rounded-3xl flex items-center gap-3 group transition-all active:scale-95 backdrop-blur-xl",
-                  theme === 'light' ? "bg-white/60 border border-white/60 shadow-sm hover:bg-white/80" : "bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05]"
+                  "ios-card flex items-center gap-3 group transition-all active:scale-95",
+                  theme === 'light' ? "bg-white/60 hover:bg-white/80" : "bg-white/[0.02] hover:bg-white/[0.05]"
                 )}
               >
                 <Download className={cn("w-4 h-4 group-hover:text-blue-400 transition-colors", theme === 'light' ? "text-slate-400" : "text-white/40")} />
@@ -2088,8 +2293,8 @@ function App() {
               </button>
 
               <label className={cn(
-                "p-5 rounded-3xl flex items-center gap-3 group transition-all active:scale-95 cursor-pointer backdrop-blur-xl",
-                theme === 'light' ? "bg-white/60 border border-white/60 shadow-sm hover:bg-white/80" : "bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05]"
+                "ios-card flex items-center gap-3 group transition-all active:scale-95 cursor-pointer",
+                theme === 'light' ? "bg-white/60 hover:bg-white/80" : "bg-white/[0.02] hover:bg-white/[0.05]"
               )}>
                 <Upload className={cn("w-4 h-4 group-hover:text-purple-400 transition-colors", theme === 'light' ? "text-slate-400" : "text-white/40")} />
                 <span className={cn("text-[10px] font-black uppercase tracking-widest", theme === 'light' ? "text-slate-500" : "text-white/60")}>Restore</span>
@@ -2097,67 +2302,13 @@ function App() {
               </label>
             </div>
 
-            {/* Theme Toggle Section */}
-            <div className="space-y-3">
-              <button 
-                onClick={toggleTheme}
-                className={cn(
-                  "w-full p-5 border rounded-3xl flex items-center justify-between group transition-all active:scale-[0.99] backdrop-blur-xl",
-                  theme === 'dark' ? "bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04]" : "bg-white/60 border-white/60 shadow-sm hover:bg-white/80"
-                )}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center border transition-colors",
-                    theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-indigo-500/10 border-indigo-500/20'
-                  )}>
-                    {theme === 'dark' ? (
-                      <Sun className="w-5 h-5 text-yellow-500" />
-                    ) : (
-                      <Moon className="w-5 h-5 text-indigo-500" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1 mb-0.5">
-                      <div className={cn(
-                        "w-1 h-1 rounded-full transition-colors",
-                        theme === 'dark' ? 'bg-yellow-500/40 shadow-[0_0_5px_rgba(234,179,8,0.2)]' : 'bg-indigo-500/40 shadow-[0_0_5px_rgba(99,102,241,0.2)]'
-                      )} />
-                      <p className={cn(
-                        "text-[7px] font-black uppercase tracking-[0.2em]",
-                        theme === 'dark' ? "text-white/10" : "text-black/10"
-                      )}>Visual Style</p>
-                    </div>
-                    <span className={cn(
-                      "text-xs font-black uppercase tracking-widest",
-                      theme === 'dark' ? "text-white/70" : "text-black/70"
-                    )}>
-                      {theme === 'dark' ? 'Switch to ' : 'Switch to '}
-                      <span className={theme === 'dark' ? 'text-yellow-500/50' : 'text-indigo-500/50'}>
-                        {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-                <div className={cn(
-                  "w-12 h-6 rounded-full border p-1 transition-colors",
-                  theme === 'dark' ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-indigo-500/10 border-indigo-500/20'
-                )}>
-                  <div className={cn(
-                    "w-4 h-4 rounded-full transition-all duration-500 transform",
-                    theme === 'dark' ? 'translate-x-6 bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]' : 'translate-x-0 bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]'
-                  )} />
-                </div>
-              </button>
-            </div>
-
             {/* Danger Zone Section */}
             <div className="space-y-3">
               <button 
                 onClick={() => { setShowAbout(true); haptic('medium'); }}
                 className={cn(
-                  "w-full p-5 rounded-3xl flex items-center justify-between group transition-all active:scale-[0.99] backdrop-blur-xl",
-                  theme === 'light' ? "bg-white/60 border border-white/60 shadow-sm hover:bg-white/80" : "bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05]"
+                  "ios-card w-full flex items-center justify-between group transition-all active:scale-[0.99]",
+                  theme === 'light' ? "bg-white/60 hover:bg-white/80" : "bg-white/[0.02] hover:bg-white/[0.05]"
                 )}
               >
                 <div className="flex items-center gap-4">
@@ -2175,6 +2326,107 @@ function App() {
                 <Sparkles className="w-4 h-4 text-white/20 group-hover:text-primary transition-colors" />
               </button>
 
+              <div className={cn(
+                "ios-card w-full flex flex-col gap-4",
+                theme === 'light' ? "bg-amber-500/10 hover:bg-amber-500/15" : "bg-amber-500/[0.03] hover:bg-amber-500/[0.05]"
+              )}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center border border-amber-500/20">
+                      <FileText className="w-5 h-5 text-amber-500" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <div className="w-1 h-1 rounded-full bg-amber-500/40 shadow-[0_0_5px_rgba(245,158,11,0.2)]" />
+                        <p className={cn("text-[7px] font-black uppercase tracking-[0.2em]", theme === 'light' ? "text-amber-600" : "text-white/10")}>Selective Wipe</p>
+                      </div>
+                      <span className={cn("text-xs font-black uppercase tracking-widest", theme === 'light' ? "text-amber-700" : "text-amber-500/70")}>Delete <span className="text-amber-500/50">By Date</span></span>
+                    </div>
+                  </div>
+                  
+                  <div 
+                    onClick={() => {
+                      haptic('light');
+                      try {
+                        // @ts-ignore
+                        reportDeleteInputRef.current?.showPicker();
+                      } catch (e) {
+                        reportDeleteInputRef.current?.click();
+                      }
+                    }}
+                    className={cn(
+                      "relative group flex items-center gap-2 px-3 py-2 rounded-xl border transition-all cursor-pointer",
+                      theme === 'light' ? "bg-white/40 border-black/5 hover:bg-white/60" : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05]"
+                    )}
+                  >
+                    <Calendar className="w-3 h-3 text-amber-500/60" />
+                    <input 
+                      ref={reportDeleteInputRef}
+                      type="date" 
+                      value={reportDeleteDate}
+                      onChange={(e) => {
+                        setReportDeleteDate(e.target.value);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className={cn(
+                        "bg-transparent text-[9px] font-black uppercase tracking-widest outline-none cursor-pointer w-24",
+                        theme === 'light' ? "text-slate-600 [color-scheme:light]" : "text-white/60 [color-scheme:dark]"
+                      )}
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  disabled={!reportDeleteDate}
+                  onClick={() => { 
+                    haptic('heavy'); 
+                    setConfirmAction({
+                      type: 'reset_reports_date',
+                      title: 'Delete Reports',
+                      message: `Are you sure you want to delete MT5 reports for ${reportDeleteDate}?`
+                    });
+                  }}
+                  className={cn(
+                    "w-full py-3 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg",
+                    reportDeleteDate 
+                      ? (theme === 'light' ? "bg-amber-500 text-white shadow-amber-500/20" : "bg-amber-500/20 text-amber-500 border border-amber-500/30 hover:bg-amber-500/30 shadow-amber-500/10")
+                      : (theme === 'light' ? "bg-slate-100 text-slate-300 cursor-not-allowed" : "bg-white/[0.02] text-white/10 cursor-not-allowed border border-white/[0.02]")
+                  )}
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Clear Selected Date
+                </button>
+              </div>
+
+              <button 
+                onClick={() => { 
+                  haptic('heavy'); 
+                  setConfirmAction({
+                    type: 'reset_reports',
+                    title: 'Clear Reports',
+                    message: 'Are you sure you want to delete ALL MT5 trade reports? This will not affect your daily records.'
+                  });
+                }}
+                className={cn(
+                  "ios-card w-full flex items-center justify-between group transition-all active:scale-[0.99]",
+                  theme === 'light' ? "bg-amber-500/15 hover:bg-amber-500/20" : "bg-amber-500/[0.05] hover:bg-amber-500/10"
+                )}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center border border-amber-500/20">
+                    <FileText className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <div className="w-1 h-1 rounded-full bg-amber-500/40 shadow-[0_0_5px_rgba(245,158,11,0.2)]" />
+                      <p className={cn("text-[7px] font-black uppercase tracking-[0.2em]", theme === 'light' ? "text-amber-600" : "text-white/10")}>Report Management</p>
+                    </div>
+                    <span className={cn("text-xs font-black uppercase tracking-widest", theme === 'light' ? "text-amber-700" : "text-amber-500/70")}>Clear <span className="text-amber-500/50">All Reports</span></span>
+                  </div>
+                </div>
+                <Trash2 className="w-4 h-4 text-amber-500/20 group-hover:text-amber-500 transition-colors" />
+              </button>
+
               <button 
                 onClick={() => { 
                   haptic('heavy'); 
@@ -2185,8 +2437,8 @@ function App() {
                   });
                 }}
                 className={cn(
-                  "w-full p-5 rounded-3xl flex items-center justify-between group transition-all active:scale-[0.99] backdrop-blur-xl",
-                  theme === 'light' ? "bg-red-500/15 border border-red-500/30 shadow-sm hover:bg-red-500/20" : "bg-red-500/[0.05] border border-red-500/10 hover:bg-red-500/10"
+                  "ios-card w-full flex items-center justify-between group transition-all active:scale-[0.99]",
+                  theme === 'light' ? "bg-red-500/15 hover:bg-red-500/20" : "bg-red-500/[0.05] hover:bg-red-500/10"
                 )}
               >
                 <div className="flex items-center gap-4">
@@ -2214,8 +2466,8 @@ function App() {
                   });
                 }}
                 className={cn(
-                  "w-full p-5 rounded-3xl flex items-center justify-between group transition-all active:scale-[0.99] backdrop-blur-xl",
-                  theme === 'light' ? "bg-sky-500/15 border border-sky-500/30 shadow-sm hover:bg-sky-500/20" : "bg-sky-500/[0.05] border border-sky-500/10 hover:bg-sky-500/10"
+                  "ios-card w-full flex items-center justify-between group transition-all active:scale-[0.99]",
+                  theme === 'light' ? "bg-sky-500/15 hover:bg-sky-500/20" : "bg-sky-500/[0.05] hover:bg-sky-500/10"
                 )}
               >
                 <div className="flex items-center gap-4">
@@ -2292,9 +2544,15 @@ function App() {
                 )}>
                   <div className={cn(
                     "w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 border animate-pulse",
-                    confirmAction.type === 'reset' ? "bg-rose-500/10 border-rose-500/20" : "bg-sky-500/10 border-sky-500/20"
+                    confirmAction.type === 'reset' ? "bg-rose-500/10 border-rose-500/20" : 
+                    confirmAction.type === 'reset_reports' ? "bg-amber-500/10 border-amber-500/20" :
+                    "bg-sky-500/10 border-sky-500/20"
                   )}>
-                    <RotateCcw className={cn("w-8 h-8", confirmAction.type === 'reset' ? "text-rose-500" : "text-sky-500")} />
+                    <RotateCcw className={cn("w-8 h-8", 
+                      confirmAction.type === 'reset' ? "text-rose-500" : 
+                      confirmAction.type === 'reset_reports' ? "text-amber-500" :
+                      "text-sky-500"
+                    )} />
                   </div>
                   <h3 className={cn("text-xl font-black mb-2 tracking-tighter text-center", theme === 'light' ? "text-slate-800" : "text-white")}>{confirmAction.title}</h3>
                   <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] mb-8 text-center leading-relaxed px-4", theme === 'light' ? "text-slate-400" : "text-white/50")}>
@@ -2318,15 +2576,21 @@ function App() {
                           localStorage.clear();
                           sessionStorage.clear();
                           window.location.href = window.location.origin + window.location.pathname + '?force=' + Date.now();
+                        } else if (confirmAction.type === 'reset_reports') {
+                          handleDeleteMT5Reports();
+                        } else if (confirmAction.type === 'reset_reports_date') {
+                          handleDeleteMT5ReportsByDate();
                         } else {
                           handleResetAllData();
                         }
                         setConfirmAction(null);
                       }}
                       className={cn(
-                        "p-4 rounded-2xl text-black text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg",
-                        confirmAction.type === 'reset' ? "bg-rose-500 shadow-rose-500/20" : "bg-sky-500 shadow-sky-500/20"
-                      )}
+                            "p-4 rounded-2xl text-black text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg",
+                            confirmAction.type === 'reset' ? "bg-rose-500 shadow-rose-500/20" : 
+                            (confirmAction.type === 'reset_reports' || confirmAction.type === 'reset_reports_date') ? "bg-amber-500 shadow-amber-500/20" :
+                            "bg-sky-500 shadow-sky-500/20"
+                          )}
                     >
                       Confirm
                     </button>

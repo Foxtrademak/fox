@@ -50,6 +50,9 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
         "fixed top-0 inset-x-0 h-40 z-[90] pointer-events-none transition-opacity duration-500 opacity-0"
       )} />
 
+      {/* Gradient Blur Effect - Unified implementation for all pages */}
+      <div className={cn("gradient-blur-header", isScrolled && "is-scrolled")} style={{ zIndex: 90 }} />
+
       {/* Sticky Header Section - All Cards with Stack Effect */}
       <div className={cn(
         "sticky top-0 z-[100] pt-4 transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",

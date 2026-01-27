@@ -49,18 +49,18 @@ const LivePriceTicker: React.FC<LivePriceTickerProps> = ({ theme = 'dark' }) => 
   }, [theme]);
 
   return (
-    <div className="w-full px-0 sm:px-4 mb-8 animate-fade-in">
+    <div className="w-full px-4 mb-8 animate-fade-in">
       <div className="max-w-[1400px] mx-auto">
         <div className="relative group">
           {/* Glass Card Container - Fixed Height and Overflow */}
           <div className={cn(
-            "relative backdrop-blur-xl h-[40px] flex items-center shadow-lg overflow-hidden transition-all duration-300",
-            theme === 'light' ? "bg-white/60" : "bg-white/[0.02]"
+            "relative backdrop-blur-xl h-[44px] flex items-center shadow-2xl overflow-hidden transition-all duration-500 rounded-2xl border",
+            theme === 'light' ? "bg-white/60 border-black/[0.05]" : "bg-white/[0.02] border-white/[0.05]"
           )}>
             
-            {/* Cyberpunk Accents */}
-            <div className="absolute inset-y-0 left-0 w-1 bg-primary/40 z-[30]" />
-            <div className="absolute inset-y-0 right-0 w-1 bg-primary/40 z-[30]" />
+            {/* Cyberpunk Accents - Adjusted for rounded corners */}
+            <div className="absolute inset-y-0 left-0 w-1 bg-primary/40 blur-sm z-[30]" />
+            <div className="absolute inset-y-0 right-0 w-1 bg-primary/40 blur-sm z-[30]" />
             
             {/* Ticker Content Container - Simplified for containment */}
             <div className="w-full h-full flex items-center justify-center">

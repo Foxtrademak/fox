@@ -25,6 +25,7 @@ interface ChartPoint {
 
 export function TradeChart({ data, initialCapital, className }: TradeChartProps) {
   const [viewMode, setViewMode] = useState<'line' | 'candle'>('line');
+  const theme = 'dark';
 
   const chartData = useMemo(() => {
     if (data.length === 0) return { realData: [], futureData: [] };
@@ -205,7 +206,8 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
   if (activeData.length <= 1) {
     return (
       <div className={cn(
-        "h-full w-full flex flex-col items-center justify-center text-muted-foreground bg-transparent backdrop-blur-xl border border-white/[0.05] rounded-[2.5rem]",
+        "h-full w-full flex flex-col items-center justify-center text-muted-foreground backdrop-blur-xl border rounded-[2.5rem]",
+        "bg-transparent border-white/[0.05]",
         className
       )}>
         <Activity className="w-10 h-10 mb-4 opacity-10" />
@@ -226,13 +228,16 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
     )}>
       <div className="flex items-center justify-between mb-2 sm:mb-4 relative z-10 px-2">
         <div className="flex items-center gap-2 sm:gap-4">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/[0.03] rounded-lg flex items-center justify-center border border-white/[0.05]">
-            <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary/60" />
+          <div className={cn(
+            "w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center border",
+            "bg-white/[0.03] border-white/[0.05]"
+          )}>
+            <Activity className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4", "text-primary/60")} />
           </div>
           <div className="text-left">
-            <h3 className="text-[7px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-white/20 mb-0.5">Portfolio Growth</h3>
+            <h3 className={cn("text-[7px] sm:text-[9px] font-black uppercase tracking-[0.2em] mb-0.5", "text-white/20")}>Portfolio Growth</h3>
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className="text-sm sm:text-xl font-black tracking-tighter text-white">${capitals[capitals.length - 1]?.toLocaleString() || '0'}</span>
+              <span className={cn("text-sm sm:text-xl font-black tracking-tighter", "text-white")}>${capitals[capitals.length - 1]?.toLocaleString() || '0'}</span>
               {realData.length > 1 && lastRealPoint?.close !== null && prevRealPoint?.close !== null && prevRealPoint !== null && (
                 <span className={cn(
                   "text-[8px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-lg",
@@ -249,7 +254,10 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex items-center bg-black/40 p-0.5 sm:p-1 rounded-xl sm:rounded-2xl border border-white/5 shadow-inner">
+        <div className={cn(
+          "flex items-center p-0.5 sm:p-1 rounded-xl sm:rounded-2xl border shadow-inner transition-all duration-300",
+          "bg-black/40 border-white/5"
+        )}>
           <button 
             type="button"
             onClick={(e) => {
@@ -260,7 +268,7 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
             className={cn(
               "px-2 sm:px-4 py-1 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center gap-1 sm:gap-2",
               viewMode === 'line' 
-                ? "bg-white/[0.05] text-white border border-white/10 shadow-lg" 
+                ? "bg-white/[0.05] text-white border border-white/10 shadow-lg"
                 : "text-white/20 hover:text-white/40"
             )}
           >
@@ -277,7 +285,7 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
             className={cn(
               "px-2 sm:px-4 py-1 sm:py-2 rounded-lg sm:rounded-xl transition-all duration-300 flex items-center gap-1 sm:gap-2",
               viewMode === 'candle' 
-                ? "bg-white/[0.05] text-white border border-white/10 shadow-lg" 
+                ? "bg-white/[0.05] text-white border border-white/10 shadow-lg"
                 : "text-white/20 hover:text-white/40"
             )}
           >
@@ -342,7 +350,7 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
                 }}
                 itemStyle={{ color: '#ffffff', padding: '0' }}
                 labelStyle={{ color: 'rgba(255,255,255,0.4)', marginBottom: '4px', fontSize: '8px', fontWeight: 'bold' }}
-                formatter={(value: number) => [`$${Math.round(value || 0)}`, 'Balance']}
+                formatter={(value: any) => [`$${Math.round(Number(value) || 0)}`, 'Balance']}
               />
               <Area 
                 type="monotone" 
@@ -394,18 +402,24 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
                     if (point.isStart) return null;
                     if (point.isFuture) {
                       return (
-                        <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-2 rounded-xl shadow-2xl">
-                          <span className="text-[10px] font-black text-white/40">{label}</span>
-                          <div className="text-[9px] text-white/20 font-black uppercase tracking-widest mt-1">Empty Space</div>
+                        <div className={cn(
+                          "backdrop-blur-xl border p-2 rounded-xl shadow-2xl",
+                          "bg-black/80 border-white/10"
+                        )}>
+                          <span className={cn("text-[10px] font-black", "text-white/40")}>{label}</span>
+                          <div className={cn("text-[9px] font-black uppercase tracking-widest mt-1", "text-white/20")}>Empty Space</div>
                         </div>
                       );
                     }
                     const isBullish = (point.close ?? 0) >= (point.open ?? 0);
 
                     return (
-                      <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-3 rounded-2xl shadow-2xl min-w-[140px]">
-                        <div className="flex justify-between items-center mb-2 border-b border-white/5 pb-1">
-                          <span className="text-[10px] font-black text-white/40">{label}</span>
+                      <div className={cn(
+                        "backdrop-blur-xl border p-3 rounded-2xl shadow-2xl min-w-[140px]",
+                        "bg-black/80 border-white/10"
+                      )}>
+                        <div className={cn("flex justify-between items-center mb-2 border-b pb-1", "border-white/5")}>
+                          <span className={cn("text-[10px] font-black", "text-white/40")}>{label}</span>
                           <span className={cn(
                             "text-[8px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-widest",
                             isBullish ? "bg-[#22c55e]/10 text-[#22c55e]" : "bg-[#ff3b30]/10 text-[#ff3b30]"
@@ -415,19 +429,19 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
                         </div>
                         <div className="space-y-1.5 font-sans">
                           <div className="flex justify-between text-[10px]">
-                            <span className="text-white/40">O:</span>
-                            <span className="text-white font-bold">${point.open?.toLocaleString() || '0'}</span>
+                            <span className={cn("text-white/40")}>O:</span>
+                            <span className={cn("font-bold", "text-white")}>${point.open?.toLocaleString() || '0'}</span>
                           </div>
                           <div className="flex justify-between text-[10px]">
-                            <span className="text-white/40">H:</span>
+                            <span className={cn("text-white/40")}>H:</span>
                             <span className="text-[#22c55e] font-bold">${point.high?.toLocaleString() || '0'}</span>
                           </div>
                           <div className="flex justify-between text-[10px]">
-                            <span className="text-white/40">L:</span>
+                            <span className={cn("text-white/40")}>L:</span>
                             <span className="text-[#ff3b30] font-bold">${point.low?.toLocaleString() || '0'}</span>
                           </div>
-                          <div className="flex justify-between text-[10px] border-t border-white/5 pt-1 mt-1">
-                            <span className="text-white/40">C:</span>
+                          <div className={cn("flex justify-between text-[10px] border-t pt-1 mt-1", "border-white/5")}>
+                            <span className={cn("text-white/40")}>C:</span>
                             <span className={cn("font-black", isBullish ? "text-[#22c55e]" : "text-[#ff3b30]")}>
                               ${point.close?.toLocaleString() || '0'}
                             </span>
@@ -442,7 +456,7 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
               <Bar
                 dataKey={(d: ChartPoint) => [d.low ?? 0, d.high ?? 0]}
                 isAnimationActive={false}
-                shape={(props: { x: number, y: number, width: number, height: number, payload: ChartPoint }) => {
+                shape={(props: any) => {
                   const { x, y, width, height, payload } = props;
                   if (!payload || payload.isStart || payload.isFuture || isNaN(x) || isNaN(y) || isNaN(width) || isNaN(height)) return null;
                   
