@@ -1032,22 +1032,19 @@ function App() {
                 "sticky top-0 z-[100] transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
                 isScrolled ? "pt-2 pb-0" : "pt-0 pb-2"
               )}>
-              {/* Transparent Mask - Background blur when scrolled */}
-              <div className={cn(
-                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter]",
-                  isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
-                )} />
+              {/* Transparent Mask - Removed to eliminate lines */}
+              <div className="fixed inset-x-0 top-0 h-[120px] -z-10 pointer-events-none" />
 
               <div className={cn(
                 "relative group px-2 sm:px-0 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
                 isScrolled ? "scale-[0.92] sm:scale-[0.95]" : "scale-100"
               )}>
                 <div className={cn(
-                  "ios-card shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden",
+                  "ios-card transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden border-none outline-none ring-0",
                   theme === 'light' 
-                    ? "bg-primary/5 shadow-black/5" 
-                    : "bg-primary/[0.03] shadow-black/20",
-                  isScrolled ? "pt-1.5 pb-1.5 h-[75px] sm:h-[110px]" : "pt-6 pb-10 h-auto"
+                    ? "bg-primary/5 shadow-none" 
+                    : "bg-primary/[0.03] shadow-none",
+                  isScrolled ? "pt-1.5 pb-1.5 h-[75px] sm:h-[110px]" : "pt-6 pb-10 h-auto shadow-2xl"
                 )}>
                   {/* Share Button */}
                   <div className={cn(
@@ -1588,14 +1585,8 @@ function App() {
                 "sticky top-0 z-[100] transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
                 isScrolled ? "pt-2 pb-0" : "pt-0 pb-2"
               )}>
-              {/* Transparent Mask - Background blur when scrolled */}
-              <div className={cn(
-                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter]",
-                  isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
-                )} style={{ 
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
-                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
-                }} />
+              {/* Transparent Mask - Removed to eliminate lines */}
+              <div className="fixed inset-x-0 top-0 h-[120px] -z-10 pointer-events-none" />
 
               <div className={cn(
                 "flex flex-col items-center justify-center transition-all duration-700",
@@ -1888,14 +1879,8 @@ function App() {
                 "sticky top-0 z-[100] transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
                 isScrolled ? "pt-2 pb-0" : "pt-0 pb-2"
               )}>
-              {/* Transparent Mask - Background blur when scrolled */}
-              <div className={cn(
-                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter]",
-                  isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
-                )} style={{ 
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
-                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
-                }} />
+              {/* Transparent Mask - Removed to eliminate lines */}
+              <div className="fixed inset-x-0 top-0 h-[120px] -z-10 pointer-events-none" />
 
               <div className={cn(
                 "flex flex-col items-center mb-8 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
@@ -2479,22 +2464,15 @@ function App() {
       theme === 'dark' ? "bg-[#050507]" : "bg-[#f8f9fa]"
     )}>
       {/* iOS Glass Header - Fixed at top with safe area padding */}
-      <div className={cn(
-        "fixed top-0 left-0 right-0 z-[60] backdrop-blur-3xl border-b transition-colors duration-500",
-        theme === 'dark' ? "bg-black/60 border-white/5" : "bg-white/60 border-black/5"
-      )}>
-        <div className="h-[env(safe-area-inset-top)] w-full" /> {/* Safe Area Spacer */}
-        <div className="h-4 w-full" /> {/* Additional spacing requested by user */}
-      </div>
+      <div className="fixed top-0 left-0 right-0 z-[60] h-[env(safe-area-inset-top)] pointer-events-none" />
       
       {/* Premium Background Design - Dynamic Theme */}
       {/* High Quality Image Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none">
-        <div className="absolute inset-0 bg-black" />
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none bg-black">
         <img 
           src="background.png" 
           alt="" 
-          className="absolute inset-0 w-full h-full object-cover opacity-100"
+          className="absolute inset-0 w-full h-full object-cover opacity-100 border-none outline-none ring-0"
         />
         
         {/* Theme Overlay for Readability */}
