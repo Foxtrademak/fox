@@ -1,10 +1,12 @@
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid, YAxis } from 'recharts';
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { type Statistics, type PeriodStats, type SessionStats } from '../lib/statistics';
 import { cn } from '../lib/utils';
 import { TradeChart } from './TradeChart';
 import { type DailyRecord } from '../types';
 import { haptic } from '../lib/utils';
+
 interface StatsOverviewProps {
   stats: Statistics;
   records: DailyRecord[];
@@ -19,100 +21,215 @@ interface StatsOverviewProps {
 }
 
 export function StatsOverview({ stats, periodStats, records, initialCapital, sessionStats, theme }: StatsOverviewProps) {
-  return (
-    <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10 px-4">
-      
-      {/* Modern Unified PnL Overview */}
-      <div className="mb-3 sm:mb-4">
-        <div className="ios-card sm:py-3 shadow-lg group">
-          {/* Vertical Side Label - Like Balance Card */}
-          <div className={cn(
-            "absolute left-0 top-0 bottom-0 w-6 sm:w-8 hidden xs:flex items-center justify-center border-r backdrop-blur-md rounded-l-[2.5rem] overflow-hidden z-20",
-            theme === 'light' ? "bg-black/[0.01] border-black/[0.03]" : "bg-white/[0.01] border-white/[0.03]"
-          )}>
-            <div className="-rotate-90 whitespace-nowrap">
-              <p className="text-[6px] sm:text-[8px] font-black uppercase tracking-[0.4em] sm:tracking-[0.6em] text-primary/70 select-none">
-                Net Performance
-              </p>
-            </div>
-          </div>
+  const [isScrolled, setIsScrolled] = useState(false);
 
-          {/* Animated Background Gradient Glows */}
-          <div className="absolute -top-24 -left-24 w-64 h-64 bg-emerald-500/5 rounded-full blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
-          <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-rose-500/5 rounded-full blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = (e: Event) => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const target = (e.target === document ? document.documentElement : e.target) as HTMLElement;
+          const currentScrollY = target.scrollTop || window.scrollY;
           
-          <div className="relative z-10 p-3 sm:p-4 xs:pl-8 sm:pl-12 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
-            {/* Main Net Profit Section */}
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <div className={cn(
-                  "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-[0.1em] border backdrop-blur-xl",
-                  stats.totalProfit >= 0 
-                    ? (theme === 'light' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" : "bg-emerald-500/5 border-emerald-500/15 text-emerald-500/60")
-                    : (theme === 'light' ? "bg-rose-500/10 border-rose-500/20 text-rose-600" : "bg-rose-500/5 border-rose-500/15 text-rose-500/60")
-                )}>
-                  Overall Results
-                </div>
-                <div className={cn(
-                  "h-px flex-1 bg-gradient-to-r to-transparent",
-                  theme === 'light' ? "from-black/5" : "from-white/5"
-                )} />
-              </div>
+          setIsScrolled(currentScrollY > 2);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
 
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  "text-3xl sm:text-5xl font-black tracking-tighter flex items-baseline gap-1",
-                  theme === 'light' ? "text-slate-900" : "text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.03)]"
+    window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+    return () => window.removeEventListener('scroll', handleScroll, { capture: true });
+  }, []);
+
+  return (
+    <div className="max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10 px-0 sm:px-4 relative">
+      
+      {/* iOS Top Fade Effect - Removed background gradients to keep it clean */}
+      <div className={cn(
+        "fixed top-0 inset-x-0 h-40 z-[90] pointer-events-none transition-opacity duration-500 opacity-0"
+      )} />
+
+      {/* Sticky Header Section - All Cards with Stack Effect */}
+      <div className={cn(
+        "sticky top-0 z-[100] pt-4 transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
+        isScrolled ? "scale-[0.98] -translate-y-2" : "scale-100 translate-y-0"
+      )}>
+        {/* Transparent Mask - Removed solid backgrounds to eliminate the rectangle */}
+        <div className={cn(
+            "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter]",
+            isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
+          )} style={{ 
+            WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
+            maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
+          }} />
+
+        {/* iOS Notification Style Stack Container - Main Balance Card */}
+        <div className={cn(
+          "transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] origin-top relative",
+          isScrolled ? "mb-1 scale-[0.85] sm:scale-[0.8] -translate-y-4" : "mb-3 sm:mb-4 scale-100 translate-y-0"
+        )}>
+          {/* Bottom Stack Layer (The "Ghost" cards underneath) */}
+          <div className={cn(
+            "absolute -bottom-2 inset-x-6 h-12 rounded-[2.2rem] -z-10 transition-all duration-700 border backdrop-blur-md",
+            theme === 'light' ? "bg-white/40 border-white/40" : "bg-white/[0.01] border-white/[0.03]",
+            isScrolled ? "opacity-100 translate-y-1 scale-[0.94]" : "opacity-0 translate-y-0 scale-100"
+          )} />
+          <div className={cn(
+            "absolute -bottom-4 inset-x-10 h-12 rounded-[2.2rem] -z-20 transition-all duration-700 border backdrop-blur-md",
+            theme === 'light' ? "bg-white/20 border-white/20" : "bg-white/[0.005] border-white/[0.02]",
+            isScrolled ? "opacity-60 translate-y-2 scale-[0.88]" : "opacity-0 translate-y-0 scale-100"
+          )} />
+
+          <div className={cn(
+            "ios-card shadow-2xl group transition-all duration-700 relative overflow-hidden backdrop-blur-md border",
+            theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.02] border-white/[0.05]",
+            isScrolled ? "py-1.5 sm:py-2 rounded-[1.8rem] h-[70px] flex items-center" : "py-3 sm:py-3 rounded-[2.5rem] h-auto"
+          )}>
+            {/* Glossy Overlay like iOS notifications - Modified for Dark Mode transparency */}
+            <div className={cn(
+              "absolute inset-0 pointer-events-none",
+              theme === 'light' ? "bg-gradient-to-tr from-white/10 to-transparent" : "bg-gradient-to-tr from-white/[0.02] to-transparent"
+            )} />
+            
+            {/* Vertical Side Label - Slimmer for stack effect */}
+            <div className={cn(
+              "absolute left-0 top-0 bottom-0 w-6 sm:w-8 hidden xs:flex items-center justify-center border-r backdrop-blur-md rounded-l-[2.2rem] overflow-hidden z-20 transition-all duration-500",
+              theme === 'light' ? "bg-black/[0.01] border-black/[0.03]" : "bg-white/[0.005] border-white/[0.02]",
+              isScrolled && "w-5 sm:w-7"
+            )}>
+              <div className="-rotate-90 whitespace-nowrap">
+                <p className={cn(
+                  "font-black uppercase tracking-[0.4em] text-primary/70 select-none transition-all duration-500",
+                  isScrolled ? "text-[4px] sm:text-[6px] tracking-[0.2em]" : "text-[6px] sm:text-[8px] tracking-[0.4em] sm:tracking-[0.6em]"
                 )}>
-                  <span className={cn(
-                    "text-xl sm:text-2xl opacity-20",
-                    stats.totalProfit >= 0 ? "text-emerald-500" : "text-rose-500"
-                  )}>{stats.totalProfit >= 0 ? '+' : ''}</span>
-                  {Math.round(stats.totalProfit).toLocaleString()}
-                  <span className={cn("text-base sm:text-lg opacity-20 ml-0.5", theme === 'light' ? "text-slate-900" : "text-white")}>$</span>
-                </div>
-                
-                {/* Visual indicator icon */}
-                <div className={cn(
-                  "hidden sm:flex w-10 h-10 rounded-xl items-center justify-center border transition-transform duration-500 group-hover:scale-105 backdrop-blur-xl",
-                  stats.totalProfit >= 0 
-                    ? (theme === 'light' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" : "bg-emerald-500/5 border-emerald-500/10 text-emerald-500")
-                    : (theme === 'light' ? "bg-rose-500/10 border-rose-500/20 text-rose-600" : "bg-rose-500/5 border-rose-500/10 text-rose-500")
-                )}>
-                  {stats.totalProfit >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-                </div>
+                  Net Performance
+                </p>
               </div>
             </div>
 
-            {/* Metrics Breakdown Grid */}
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:w-1/3">
-              {/* Gross Profit Box */}
+            {/* Animated Background Gradient Glows */}
+            <div className="absolute -top-24 -left-24 w-64 h-64 bg-emerald-500/5 rounded-full blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+            <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-rose-500/5 rounded-full blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+            
+            <div className={cn(
+              "relative z-10 w-full px-3 sm:px-4 xs:pl-8 sm:pl-12 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6 transition-all duration-700",
+              isScrolled ? "flex-row items-center justify-between gap-2" : "p-3 sm:p-4 xs:pl-8 sm:pl-12"
+            )}>
+              {/* Main Net Profit Section */}
               <div className={cn(
-                "relative p-2 rounded-xl border overflow-hidden group/box transition-all duration-300 backdrop-blur-xl",
-                theme === 'light' ? "bg-white/30 border-white/50 hover:bg-white/50" : "bg-white/[0.01] border-white/[0.02] hover:bg-white/[0.03]"
+                "transition-all duration-700",
+                isScrolled ? "flex-none" : "flex-1"
               )}>
-                <div className="absolute top-0 left-0 w-0.5 h-full bg-emerald-500/30" />
-                <p className={cn("text-[7px] font-black uppercase tracking-widest mb-0.5", theme === 'light' ? "text-slate-900/30" : "text-white/20")}>Revenue</p>
-                <div className="flex items-baseline gap-1">
-                  <span className={cn("text-lg font-black tracking-tighter", theme === 'light' ? "text-slate-900" : "text-white")}>
-                    {Math.round(stats.grossProfit).toLocaleString()}
-                  </span>
-                  <span className="text-[8px] font-bold text-emerald-500/40">$</span>
+                <div className={cn("flex items-center gap-2 mb-1 transition-all duration-500", isScrolled ? "opacity-0 h-0 overflow-hidden mb-0" : "opacity-100 h-auto")}>
+                  <div className={cn(
+                    "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-[0.1em] border backdrop-blur-xl",
+                    stats.totalProfit >= 0 
+                      ? (theme === 'light' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" : "bg-emerald-500/5 border-emerald-500/15 text-emerald-500/60")
+                      : (theme === 'light' ? "bg-rose-500/10 border-rose-500/20 text-rose-600" : "bg-rose-500/5 border-rose-500/15 text-rose-500/60")
+                  )}>
+                    Overall Results
+                  </div>
+                  <div className={cn(
+                    "h-px flex-1 bg-gradient-to-r to-transparent",
+                    theme === 'light' ? "from-black/5" : "from-white/5"
+                  )} />
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "font-black tracking-tighter flex items-baseline gap-1 transition-all duration-700",
+                    theme === 'light' ? "text-slate-900" : "text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.03)]",
+                    isScrolled ? "text-xl sm:text-2xl" : "text-3xl sm:text-5xl"
+                  )}>
+                    <span className={cn(
+                      "transition-all duration-700",
+                      stats.totalProfit >= 0 ? "text-emerald-500" : "text-rose-500",
+                      isScrolled ? "text-base sm:text-lg opacity-60" : "text-xl sm:text-2xl opacity-20"
+                    )}>{stats.totalProfit >= 0 ? '+' : ''}</span>
+                    {Math.round(stats.totalProfit).toLocaleString()}
+                    <span className={cn(
+                      "opacity-20 ml-0.5 transition-all duration-700", 
+                      theme === 'light' ? "text-slate-900" : "text-white",
+                      isScrolled ? "text-xs sm:text-sm" : "text-base sm:text-lg"
+                    )}>$</span>
+                    
+                    {isScrolled && (
+                      <span className={cn(
+                        "ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-md border",
+                        stats.totalProfit >= 0 
+                          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" 
+                          : "bg-rose-500/10 border-rose-500/20 text-rose-500"
+                      )}>
+                        {((stats.totalProfit / initialCapital) * 100).toFixed(1)}%
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Visual indicator icon */}
+                  <div className={cn(
+                    "flex rounded-2xl items-center justify-center border transition-all duration-700 group-hover:scale-105 backdrop-blur-xl shadow-inner",
+                    stats.totalProfit >= 0 
+                      ? (theme === 'light' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" : "bg-emerald-500/5 border-emerald-500/10 text-emerald-500")
+                      : (theme === 'light' ? "bg-rose-500/10 border-rose-500/20 text-rose-600" : "bg-rose-500/5 border-rose-500/10 text-rose-500"),
+                    isScrolled ? "w-6 h-6 rounded-lg sm:w-7 sm:h-7" : "w-10 h-10 rounded-2xl"
+                  )}>
+                    {stats.totalProfit >= 0 ? <TrendingUp className={isScrolled ? "w-3 h-3" : "w-5 h-5"} /> : <TrendingDown className={isScrolled ? "w-3 h-3" : "w-5 h-5"} />}
+                  </div>
                 </div>
               </div>
 
-              {/* Gross Loss Box */}
+              {/* Metrics Breakdown Grid - Now horizontal on scroll */}
               <div className={cn(
-                "relative p-2 rounded-xl border overflow-hidden group/box transition-all duration-300 backdrop-blur-xl",
-                theme === 'light' ? "bg-white/30 border-white/50 hover:bg-white/50" : "bg-white/[0.01] border-white/[0.02] hover:bg-white/[0.03]"
+                "grid transition-all duration-700",
+                isScrolled ? "grid-cols-2 gap-2 flex-1 max-w-[200px] sm:max-w-[300px]" : "grid-cols-2 gap-2 sm:gap-3 lg:w-1/3"
               )}>
-                <div className="absolute top-0 left-0 w-0.5 h-full bg-rose-500/30" />
-                <p className={cn("text-[7px] font-black uppercase tracking-widest mb-0.5", theme === 'light' ? "text-slate-900/30" : "text-white/20")}>Drawdown</p>
-                <div className="flex items-baseline gap-1">
-                  <span className={cn("text-lg font-black tracking-tighter", theme === 'light' ? "text-slate-900" : "text-white")}>
-                    {Math.round(stats.grossLoss).toLocaleString()}
-                  </span>
-                  <span className="text-[8px] font-bold text-rose-500/40">$</span>
+                {/* Gross Profit Box */}
+                <div className={cn(
+                  "relative p-2 rounded-2xl border overflow-hidden group/box transition-all duration-300 backdrop-blur-md",
+                  theme === 'light' ? "bg-white/30 border-white/50 hover:bg-white/50" : "bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04]",
+                  isScrolled ? "p-1 rounded-lg border-none bg-transparent backdrop-blur-none" : "p-2 rounded-2xl"
+                )}>
+                  <div className={cn("absolute top-0 left-0 w-0.5 h-full bg-emerald-500/30", isScrolled && "hidden")} />
+                  <p className={cn(
+                    "font-black uppercase tracking-widest mb-0.5 transition-all duration-500", 
+                    theme === 'light' ? "text-slate-900/30" : "text-white/20",
+                    isScrolled ? "text-[5px] sm:text-[6px]" : "text-[7px]"
+                  )}>Revenue</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className={cn(
+                      "font-black tracking-tighter transition-all duration-500", 
+                      theme === 'light' ? "text-slate-900" : "text-white",
+                      isScrolled ? "text-xs sm:text-base" : "text-lg"
+                    )}>
+                      {Math.round(stats.grossProfit).toLocaleString()}
+                    </span>
+                    <span className={cn("font-bold text-emerald-500/40 transition-all duration-500", isScrolled ? "text-[6px] sm:text-[7px]" : "text-[8px]")}>$</span>
+                  </div>
+                </div>
+
+                {/* Gross Loss Box */}
+                <div className={cn(
+                  "relative p-2 rounded-2xl border overflow-hidden group/box transition-all duration-300 backdrop-blur-md",
+                  theme === 'light' ? "bg-white/30 border-white/50 hover:bg-white/50" : "bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04]",
+                  isScrolled ? "p-1 rounded-lg border-none bg-transparent backdrop-blur-none" : "p-2 rounded-2xl"
+                )}>
+                  <div className={cn("absolute top-0 left-0 w-0.5 h-full bg-rose-500/30", isScrolled && "hidden")} />
+                  <p className={cn(
+                    "font-black uppercase tracking-widest mb-0.5 transition-all duration-500", 
+                    theme === 'light' ? "text-slate-900/30" : "text-white/20",
+                    isScrolled ? "text-[5px] sm:text-[6px]" : "text-[7px]"
+                  )}>Drawdown</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className={cn(
+                      "font-black tracking-tighter transition-all duration-500", 
+                      theme === 'light' ? "text-slate-900" : "text-white",
+                      isScrolled ? "text-xs sm:text-base" : "text-lg"
+                    )}>
+                      {Math.round(stats.grossLoss).toLocaleString()}
+                    </span>
+                    <span className={cn("font-bold text-rose-500/40 transition-all duration-500", isScrolled ? "text-[6px] sm:text-[7px]" : "text-[8px]")}>$</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -120,27 +237,12 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
         </div>
       </div>
 
-      {/* Horizontal Thin Stats Layout */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
-        <StatCard 
-          label="NET PROFIT" 
-          value={`$${Math.round(stats.totalProfit).toLocaleString()}`} 
-          trend={stats.totalProfit >= 0 ? 'positive' : 'negative'}
-          percentage={Math.min(Math.max((stats.totalProfit / initialCapital) * 100, 0), 100)}
-          theme={theme}
-        />
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-4 mb-8">
         <StatCard 
           label="WIN RATE" 
           value={`${stats.winRate.toFixed(1)}%`} 
           trend={stats.winRate >= 50 ? 'positive' : 'negative'}
           percentage={stats.winRate}
-          theme={theme}
-        />
-        <StatCard 
-          label="PROFIT FACTOR" 
-          value={stats.profitFactor.toFixed(2)} 
-          trend={stats.profitFactor >= 1.5 ? 'positive' : stats.profitFactor >= 1 ? 'neutral' : 'negative'}
-          percentage={(stats.profitFactor / 3) * 100}
           theme={theme}
         />
         <StatCard 
@@ -172,7 +274,7 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
           theme={theme}
         />
         <StatCard 
-          label="DRAWDOWN" 
+          label="MAX DRAWDOWN" 
           value={`${stats.maxDrawdown.toFixed(1)}%`} 
           trend="negative"
           percentage={100 - stats.maxDrawdown}
@@ -180,7 +282,9 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
         />
       </div>
 
-      {/* Embedded Portfolio Growth Chart */}
+      {/* Main Content Area - Scrolls under Sticky Header */}
+      <div className="space-y-6 pt-4 relative z-10">
+        {/* Embedded Portfolio Growth Chart */}
       <div className={cn(
         "w-full backdrop-blur-[40px] border rounded-[1.8rem] sm:rounded-[2.5rem] overflow-hidden p-4 sm:p-10 shadow-2xl relative group",
         theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.01] border-white/[0.05]"
@@ -213,14 +317,17 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Weekly Performance */}
         <div className={cn(
-          "backdrop-blur-xl border rounded-[2rem] p-8 space-y-8",
-          theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.02] border-white/[0.05]"
+          "backdrop-blur-[40px] border rounded-[1.8rem] sm:rounded-[2.5rem] overflow-hidden p-8 shadow-2xl relative group",
+          theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.01] border-white/[0.05]"
         )}>
-          <div className="flex items-center justify-between">
+          {/* Background Decorative Glow */}
+          <div className="absolute -top-12 -right-12 sm:-top-24 sm:-right-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/10 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/15 transition-all duration-700" />
+          
+          <div className="flex items-center justify-between relative z-10 mb-8">
             <p className={cn("text-[9px] font-black uppercase tracking-[0.3em]", theme === 'light' ? "text-slate-900/40" : "text-white/30")}>Weekly Performance</p>
             <div className="w-2 h-2 rounded-full bg-primary/40 animate-pulse" />
           </div>
-          <div className="h-[200px] w-full">
+          <div className="h-[200px] w-full relative z-10">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={periodStats.weekly.slice(-6)} margin={{ top: 5, right: 0, left: -30, bottom: 0 }}>
                 <defs>
@@ -269,14 +376,17 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
 
         {/* Daily Distribution */}
         <div className={cn(
-          "backdrop-blur-xl border rounded-[2rem] p-8 space-y-8",
-          theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.02] border-white/[0.05]"
+          "backdrop-blur-[40px] border rounded-[1.8rem] sm:rounded-[2.5rem] overflow-hidden p-8 shadow-2xl relative group",
+          theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.01] border-white/[0.05]"
         )}>
-          <div className="flex items-center justify-between">
+          {/* Background Decorative Glow */}
+          <div className="absolute -top-12 -right-12 sm:-top-24 sm:-right-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/10 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/15 transition-all duration-700" />
+          
+          <div className="flex items-center justify-between relative z-10 mb-8">
             <p className={cn("text-[9px] font-black uppercase tracking-[0.3em]", theme === 'light' ? "text-slate-900/40" : "text-white/30")}>Daily Distribution (Last 15 Days)</p>
             <div className={cn("w-2 h-2 rounded-full", theme === 'light' ? "bg-black/10" : "bg-white/10")} />
           </div>
-          <div className="h-[200px] w-full">
+          <div className="h-[200px] w-full relative z-10">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={periodStats.daily.slice(-15)} margin={{ top: 5, right: 0, left: -30, bottom: 0 }}>
                 <defs>
@@ -326,70 +436,53 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
 
       {/* Session Profitability Analysis */}
       <div className={cn(
-        "backdrop-blur-[40px] border rounded-[1.8rem] sm:rounded-[2.5rem] p-6 sm:p-10 shadow-2xl relative group",
+        "backdrop-blur-[40px] border rounded-[1.8rem] sm:rounded-[2.5rem] overflow-hidden p-8 shadow-2xl relative group",
         theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.01] border-white/[0.05]"
       )}>
         {/* Background Decorative Glow */}
-        <div className="absolute -top-12 -left-12 w-32 h-32 bg-primary/5 blur-[60px] rounded-full pointer-events-none group-hover:bg-primary/10 transition-all duration-700" />
+        <div className="absolute -top-12 -right-12 sm:-top-24 sm:-right-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/10 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/15 transition-all duration-700" />
         
-        <div className="mb-8 flex flex-row items-center justify-between gap-2 relative z-10">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-1 sm:gap-1.5 mb-0.5">
-              <div className="w-1 h-1 rounded-full bg-primary/60 shadow-[0_0_8px_rgba(212,175,55,0.4)]" />
-              <p className={cn("text-[7px] sm:text-[9px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em]", theme === 'light' ? "text-slate-900/20" : "text-white/10")}>Time Distribution</p>
-            </div>
-            <h3 className={cn("text-base sm:text-2xl font-black tracking-tighter leading-tight", theme === 'light' ? "text-slate-900" : "text-white")}>
-              Session <span className="text-primary/70">Profitability</span>
-            </h3>
-          </div>
-          <div className="flex gap-4 sm:gap-6">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-500/50" />
-              <span className={cn("text-[7px] sm:text-[9px] font-black uppercase tracking-[0.2em]", theme === 'light' ? "text-slate-900/30" : "text-white/30")}>Profitable</span>
-            </div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-red-500/50" />
-              <span className={cn("text-[7px] sm:text-[9px] font-black uppercase tracking-[0.2em]", theme === 'light' ? "text-slate-900/30" : "text-white/30")}>Loss Making</span>
-            </div>
+        <div className="flex items-center justify-between relative z-10 mb-8">
+          <p className={cn("text-[9px] font-black uppercase tracking-[0.3em]", theme === 'light' ? "text-slate-900/40" : "text-white/30")}>Market Sessions Analysis</p>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]" />
+            <span className={cn("text-[8px] font-black uppercase tracking-widest", theme === 'light' ? "text-slate-900/20" : "text-white/20")}>Live Distribution</span>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 relative z-10">
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
           {sessionStats.map((session) => (
             <div 
               key={session.label}
               className={cn(
-                "p-6 sm:p-8 rounded-[2rem] border transition-all group relative overflow-hidden flex flex-col justify-between min-h-[180px]",
-                theme === 'light' ? "bg-black/[0.02] border-black/[0.05] hover:bg-black/[0.04]" : "bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04]"
+                "p-6 rounded-[1.8rem] border transition-all duration-500 hover:scale-[1.02] group/session",
+                theme === 'light' ? "bg-white/40 border-black/[0.03] hover:bg-white/60" : "bg-white/[0.01] border-white/[0.05] hover:bg-white/[0.03]"
               )}
             >
-              <div className="flex justify-between items-center mb-4 relative z-10">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
                   <div className={cn(
-                    "w-1.5 h-1.5 rounded-full",
-                    session.profit >= 0 ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"
-                  )} />
-                  <span className={cn(
-                    "text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] transition-colors",
-                    theme === 'light' ? "text-slate-900/40 group-hover:text-primary/60" : "text-white/40 group-hover:text-primary/60"
+                    "p-2.5 rounded-xl transition-colors",
+                    theme === 'light' ? "bg-black/[0.03]" : "bg-white/[0.03] group-hover/session:bg-primary/10"
                   )}>
-                    {session.label} Session
-                  </span>
+                    <p className={cn("text-[10px] font-black uppercase tracking-widest", theme === 'light' ? "text-slate-900/60" : "text-primary/80")}>{session.label}</p>
+                  </div>
+                  <div className={cn(
+                    "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black tracking-tighter",
+                    session.profit >= 0 
+                      ? "bg-emerald-500/10 text-emerald-500" 
+                      : "bg-rose-500/10 text-rose-500"
+                  )}>
+                    {session.profit >= 0 ? '+' : ''}{Math.round(session.profit)}
+                  </div>
                 </div>
-              </div>
-              
-              <div className="space-y-4 relative z-10">
-                <span className={cn(
-                  "text-2xl sm:text-4xl font-black tracking-tighter block",
-                  session.profit >= 0 ? "text-green-500/80" : "text-red-500/80"
-                )}>
-                  {session.profit >= 0 ? '+' : ''}{session.profit.toLocaleString()}$
-                </span>
                 
-                <div className={cn("grid grid-cols-2 gap-4 border-t pt-4", theme === 'light' ? "border-black/5" : "border-white/5")}>
+                <div className="flex items-end justify-between">
                   <div className="space-y-1">
                     <p className={cn("text-[8px] sm:text-[10px] font-bold uppercase tracking-widest", theme === 'light' ? "text-slate-900/20" : "text-white/10")}>Efficiency</p>
-                    <p className={cn("text-base sm:text-lg font-black", theme === 'light' ? "text-slate-900/90" : "text-white/90")}>{Math.round(session.winRate)}%</p>
+                    <p className={cn("text-xl sm:text-2xl font-black tracking-tighter", theme === 'light' ? "text-slate-900" : "text-white")}>
+                      {Math.round(session.winRate)}%
+                    </p>
                   </div>
                   <div className="text-right space-y-1">
                     <p className={cn("text-[8px] sm:text-[10px] font-bold uppercase tracking-widest", theme === 'light' ? "text-slate-900/20" : "text-white/10")}>Volume</p>
@@ -402,7 +495,8 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
         </div>
       </div>
     </div>
-  );  
+  </div>
+);  
 }
 
 function StatCard({ 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 // Force Update v36.0
-import { Wallet, RotateCcw, Download, Upload, Lock, LayoutGrid, BarChart3, Settings, X, Clock, FileSpreadsheet, TrendingUp, TrendingDown, LogOut, AlertTriangle, Target, Trophy, Info, Trash2, Cloud, RefreshCcw, Share2, Sparkles, Bell, BellOff, FileDown, FileUp, ExternalLink, ChevronRight, Sun, Moon } from 'lucide-react';
+import { Wallet, RotateCcw, Download, Upload, Lock, LayoutGrid, BarChart3, Settings, X, Clock, FileSpreadsheet, TrendingUp, TrendingDown, LogOut, AlertTriangle, Target, Trophy, Info, Trash2, Cloud, RefreshCcw, Share2, Sparkles, Bell, BellOff, Sun, Moon } from 'lucide-react';
 import { cn, haptic } from './lib/utils';
 import { type DailyRecord, type MT5Trade } from './types';
 import * as XLSX from 'xlsx';
@@ -24,13 +24,14 @@ import {
   signOut, 
   onAuthStateChanged 
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 type Tab = 'home' | 'analytics' | 'reports' | 'settings';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [isLocked, setIsLocked] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
       const saved = localStorage.getItem('app_theme');
@@ -39,6 +40,37 @@ function App() {
       return 'dark';
     }
   });
+
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = (e: Event) => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const target = e.target as HTMLElement;
+          const currentScroll = target === document as any ? document.documentElement.scrollTop : (target.scrollTop || 0);
+          
+          if (currentScroll > 2) {
+            setIsScrolled(true);
+          } else {
+            setIsScrolled(false);
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+    return () => window.removeEventListener('scroll', handleScroll, { capture: true });
+  }, []);
+
+  useEffect(() => {
+    setIsScrolled(false);
+    window.scrollTo(0, 0);
+    // Also scroll the main element if it's the scrollable one
+    const main = document.querySelector('main');
+    if (main) main.scrollTo(0, 0);
+  }, [activeTab]);
 
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
@@ -134,30 +166,6 @@ function App() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
     return 'Notification' in window && Notification.permission === 'granted';
   });
-
-  // Robot Remote Control States
-  const [robotSettings, setRobotSettings] = useState(() => {
-    const saved = localStorage.getItem('robot_settings');
-    return saved ? JSON.parse(saved) : {
-      isEnabled: true,
-      lotSize: 0.01,
-      maxDailyLoss: 100,
-      targetProfit: 50,
-      riskLevel: 'medium' as 'low' | 'medium' | 'high',
-      pairs: ['XAUUSD', 'EURUSD'],
-      lastCommand: 'idle',
-      updatedAt: new Date().toISOString()
-    };
-  });
-  const [showRobotConfig, setShowRobotConfig] = useState(false);
-
-  // Function to update robot settings
-  const updateRobotSettings = (updates: Partial<typeof robotSettings>) => {
-    const newSettings = { ...robotSettings, ...updates, updatedAt: new Date().toISOString() };
-    setRobotSettings(newSettings);
-    localStorage.setItem('robot_settings', JSON.stringify(newSettings));
-    haptic('medium');
-  };
 
   // Function to send local notifications
   const sendNotification = (title: string, body: string) => {
@@ -267,7 +275,6 @@ function App() {
     winCount: number;
     lossCount: number;
   } | null>(null);
-  const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [reportTrades, setReportTrades] = useState<MT5Trade[]>(() => {
     const saved = localStorage.getItem('report_trades');
@@ -288,7 +295,7 @@ function App() {
   });
   const [reportSortOrder, setReportSortOrder] = useState<'desc' | 'asc'>('desc');
   const [reportDateFilter, setReportDateFilter] = useState<string>('');
-  const [reportSearchQuery, setReportSearchQuery] = useState<string>('');
+  const [reportSearchQuery] = useState<string>('');
   const [reportStatusFilter, setReportStatusFilter] = useState<'all' | 'win' | 'loss'>('all');
 
   // Authentication Handlers
@@ -691,7 +698,6 @@ function App() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsImporting(true);
     haptic('medium');
 
     try {
@@ -735,7 +741,6 @@ function App() {
 
         if (headerRowIndex === -1) {
           alert('Positions table not found. Please ensure you select a file containing the positions table.');
-          setIsImporting(false);
           return;
         }
 
@@ -891,13 +896,11 @@ function App() {
           winCount,
           lossCount
         });
-        setIsImporting(false);
       };
       reader.readAsArrayBuffer(file);
     } catch (error) {
       console.error('Import error:', error);
       alert('Error reading the Excel file. Please make sure it is a valid MT5 report.');
-      setIsImporting(false);
     }
     e.target.value = '';
   };
@@ -1017,186 +1020,274 @@ function App() {
         return (
           <div className="space-y-6 animate-fade-in pb-32">
             {/* Live Prices Ticker */}
-            <LivePriceTicker theme={theme} />
+            <div className={cn(
+              "transition-all duration-500",
+              isScrolled ? "opacity-0 -translate-y-4 pointer-events-none h-0 mb-0 overflow-hidden" : "opacity-100 translate-y-0 h-auto mb-6"
+            )}>
+              <LivePriceTicker theme={theme} />
+            </div>
 
-            {/* Unique Genius Net Worth Card */}
-            <div className="relative group px-4 sm:px-0">
-              <div className="ios-card sm:pt-6 sm:pb-10 shadow-2xl">
-                {/* Share Button - Absolute Corner Positioning (Desktop) & Top Center (Mobile) */}
-                <div className="absolute top-3 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-4 sm:right-4 z-50">
-                  <button 
-                    onClick={handleShare}
-                    disabled={isSharing}
-                    className={cn(
-                      "flex items-center justify-center gap-2 px-6 py-1.5 sm:p-3 rounded-full sm:rounded-2xl bg-white/[0.02] border border-white/[0.05] transition-all duration-300 active:scale-95",
-                      theme === 'light' && "bg-black/[0.02] border-black/[0.05]",
-                      isSharing && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    {isSharing ? (
-                      <RefreshCcw className="w-3.5 h-3.5 text-primary animate-spin" />
-                    ) : (
-                      <Share2 className={cn("w-3.5 h-3.5 transition-colors", theme === 'light' ? "text-slate-900/20" : "text-white/20")} />
-                    )}
-                    <span className={cn("text-[10px] font-black uppercase tracking-[0.2em] sm:hidden", theme === 'light' ? "text-slate-900/20" : "text-white/20")}>Share</span>
-                  </button>
-                </div>
+            {/* Sticky Header Section - Dynamic Portfolio Card */}
+            <div className={cn(
+                "sticky top-0 z-[100] transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
+                isScrolled ? "pt-2 pb-0" : "pt-0 pb-2"
+              )}>
+              {/* Transparent Mask - Background blur when scrolled */}
+              <div className={cn(
+                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter]",
+                  isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
+                )} style={{ 
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
+                }} />
 
-                <div className="relative z-10 flex flex-col items-center text-center space-y-4 sm:space-y-8 pt-12 sm:pt-0">
-                   {/* Vertical Side Label - Hidden on small mobile */}
-                   <div className={cn(
-                     "absolute left-0 top-0 bottom-0 w-8 sm:w-12 hidden xs:flex items-center justify-center border-r backdrop-blur-md rounded-l-[2.5rem] overflow-hidden z-20",
-                     theme === 'light' ? "bg-black/[0.02] border-black/[0.05]" : "bg-white/[0.02] border-white/[0.05]"
-                   )}>
-                     <div className="-rotate-90 whitespace-nowrap">
-                       <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.4em] sm:tracking-[0.6em] text-primary/80 select-none drop-shadow-[0_0_8px_rgba(212,175,55,0.5)]">
-                         Dynamic Portfolio
-                       </p>
-                     </div>
-                   </div>
+              <div className={cn(
+                "relative group px-2 sm:px-0 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                isScrolled ? "scale-[0.92] sm:scale-[0.95]" : "scale-100"
+              )}>
+                <div className={cn(
+                  "ios-card shadow-2xl transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] overflow-hidden",
+                  "border-[0.5px]",
+                  theme === 'light' 
+                    ? "bg-primary/5 border-primary/20 shadow-black/5" 
+                    : "bg-primary/[0.03] border-primary/10 shadow-black/20",
+                  isScrolled ? "pt-1.5 pb-1.5 h-[75px] sm:h-[110px]" : "pt-6 pb-10 h-auto"
+                )}>
+                  {/* Share Button */}
+                  <div className={cn(
+                    "absolute top-3 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:top-4 sm:right-4 z-50 transition-all duration-500",
+                    isScrolled ? "opacity-0 scale-50 pointer-events-none" : "opacity-100 scale-100"
+                  )}>
+                    <button 
+                      onClick={handleShare}
+                      disabled={isSharing}
+                      className={cn(
+                        "flex items-center justify-center gap-2 px-6 py-1.5 sm:p-3 rounded-full sm:rounded-2xl bg-white/[0.02] border border-white/[0.05] transition-all duration-300 active:scale-95",
+                        theme === 'light' && "bg-black/[0.02] border-black/[0.05]",
+                        isSharing && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      {isSharing ? (
+                        <RefreshCcw className="w-3.5 h-3.5 text-primary animate-spin" />
+                      ) : (
+                        <Share2 className={cn("w-3.5 h-3.5 transition-colors", theme === 'light' ? "text-slate-900/20" : "text-white/20")} />
+                      )}
+                      <span className={cn("text-[10px] font-black uppercase tracking-[0.2em] sm:hidden", theme === 'light' ? "text-slate-900/20" : "text-white/20")}>Share</span>
+                    </button>
+                  </div>
 
-                  <div className="relative flex flex-col items-center w-full xs:pl-8 sm:pl-0">
-                    <div className="flex flex-col items-center justify-center gap-4 sm:gap-6 relative w-full">
-                      
-                    {/* Market Sessions (Mobile Grid & Desktop Top) */}
-                    <div className="w-full">
-                      {/* Mobile: Grid Layout - Optimized */}
-                      <div className="grid grid-cols-2 gap-1.5 sm:hidden w-full px-1">
-                        {sessions.map((session) => (
-                          <div key={session.name} className={cn(
-                            "p-1.5 rounded-lg border transition-all duration-300 flex flex-col items-center",
-                            session.active 
-                              ? "bg-primary/10 border-primary/20 shadow-[0_0_10px_rgba(212,175,55,0.05)]" 
-                              : theme === 'light' ? "bg-black/[0.01] border-black/[0.05] opacity-30" : "bg-white/[0.01] border-white/[0.05] opacity-30"
-                          )}>
-                            <div className="flex items-center gap-1.5 mb-0">
-                              <span className={cn(
-                                "text-[8px] font-black uppercase tracking-tight",
-                                session.active ? "text-primary" : theme === 'light' ? "text-slate-900/30" : "text-white/30"
-                              )}>
-                                {session.name}
-                              </span>
-                              {session.active && <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />}
-                            </div>
-                            <span className={cn(
-                              "text-[7px] font-bold tracking-tighter",
-                              session.active ? "text-primary/60" : theme === 'light' ? "text-slate-900/10" : "text-white/10"
-                            )}>
-                              {session.timeDisplay}
-                            </span>
-                          </div>
-                        ))}
+                  <div className={cn(
+                    "relative z-10 flex flex-col items-center text-center space-y-2 sm:space-y-4 transition-all duration-700",
+                    isScrolled ? "pt-1 sm:pt-0" : "pt-12 sm:pt-0"
+                  )}>
+                    {/* Vertical Side Label */}
+                    <div className={cn(
+                      "absolute left-0 top-0 bottom-0 w-8 sm:w-12 hidden xs:flex items-center justify-center border-r backdrop-blur-md rounded-l-[2.5rem] overflow-hidden z-20 transition-all duration-700",
+                      theme === 'light' ? "bg-black/[0.02] border-black/[0.05]" : "bg-white/[0.02] border-white/[0.05]",
+                      isScrolled ? "opacity-0 -translate-x-full" : "opacity-100 translate-x-0"
+                    )}>
+                      <div className="-rotate-90 whitespace-nowrap">
+                        <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.4em] sm:tracking-[0.6em] text-primary/80 select-none">
+                          Dynamic Portfolio
+                        </p>
                       </div>
+                    </div>
 
-                      {/* Desktop: Horizontal Layout */}
-                      <div className="hidden sm:flex items-center justify-center gap-8 lg:gap-12 w-full">
-                        {sessions.map((session) => (
-                          <div key={session.name} className="flex flex-col items-center gap-1 group/session">
-                            <div className="flex items-center gap-2">
+                    <div className={cn(
+                      "relative flex flex-col items-center w-full transition-all duration-700",
+                      isScrolled ? "xs:pl-0 px-2 sm:px-6" : "xs:pl-8 sm:pl-0"
+                    )}>
+                      <div className={cn(
+                        "relative w-full transition-all duration-700",
+                        isScrolled ? "flex items-center justify-between px-2" : "flex flex-col items-center justify-center gap-2 sm:gap-4"
+                      )}>
+                        
+                      {/* Market Sessions - Left Column on scroll */}
+                      <div className={cn(
+                        "transition-all duration-700",
+                        isScrolled ? "flex-none order-first opacity-100" : "w-full mb-2 opacity-100 h-auto"
+                      )}>
+                        {/* Mobile: Grid Layout */}
+                        <div className={cn(
+                          "flex sm:hidden px-1 transition-all duration-500",
+                          isScrolled ? "flex-col items-start gap-0" : "grid grid-cols-2 gap-1.5 w-full"
+                        )}>
+                          {sessions.map((session) => (
+                            <div key={session.name} className={cn(
+                              "transition-all duration-300 flex items-center gap-1",
+                              !session.active && "opacity-20",
+                              isScrolled ? "p-0 h-3" : "p-1.5 rounded-lg border bg-white/[0.01] border-white/[0.05]"
+                            )}>
                               <div className={cn(
-                                "w-1.5 h-1.5 rounded-full transition-all duration-500",
-                                session.active 
-                                  ? "bg-primary shadow-[0_0_10px_rgba(212,175,55,0.6)] animate-pulse" 
-                                  : theme === 'light' ? "bg-black/10" : "bg-white/10"
+                                "rounded-full",
+                                session.active ? "bg-primary animate-pulse" : "bg-white/20",
+                                isScrolled ? "w-0.5 h-0.5" : "w-1 h-1"
                               )} />
                               <span className={cn(
-                                "text-[11px] font-black uppercase tracking-[0.2em] transition-colors duration-300",
-                                session.active ? "text-primary" : theme === 'light' ? "text-slate-900/40" : "text-white/40"
+                                "font-black uppercase tracking-tight",
+                                session.active ? "text-primary" : theme === 'light' ? "text-slate-900/30" : "text-white/30",
+                                isScrolled ? "text-[6px]" : "text-[8px]"
                               )}>
                                 {session.name}
                               </span>
                             </div>
-                            <span className={cn(
-                              "text-[8px] font-bold tracking-[0.1em] transition-colors duration-300",
-                              session.active ? "text-primary/40" : theme === 'light' ? "text-slate-900/10" : "text-white/10"
-                            )}>
-                              {session.timeDisplay}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                          ))}
+                        </div>
 
-                    <div className="flex flex-col items-center gap-1 sm:gap-4 relative py-2">
-                      <div className="flex items-center gap-2">
-                        <div className="relative group/dollar">
-                          <span className="text-xl xs:text-2xl sm:text-5xl font-extralight bg-gradient-to-b from-primary via-primary/80 to-primary/40 bg-clip-text text-transparent select-none">
-                            $
-                          </span>
-                        </div>
-                        <h2 className={cn("text-3xl xs:text-5xl sm:text-8xl font-black tracking-tighter flex items-baseline", theme === 'light' ? "text-slate-900" : "text-white")}>
-                          {Math.floor(currentCapital).toLocaleString()}
-                          <span className="text-lg xs:text-xl sm:text-4xl text-primary flex items-baseline relative group/balance-dec">
-                              <span className="mx-0.5">.</span>
-                              <span className="ml-0.5 tracking-tight">
-                                {((currentCapital % 1) * 100).toFixed(0).padStart(2, '0')}
-                              </span>
-                              {/* Modern Styled Withdrawal Icon - Static Design */}
-                                <button 
-                                   onClick={(e) => { 
-                                     e.stopPropagation();
-                                     setIsAddingWithdrawal(true); 
-                                     haptic('medium'); 
-                                   }}
-                                   className="absolute -top-5 sm:-top-8 left-[60%] -translate-x-1/2 active:scale-90 transition-transform"
-                                 >
-                                <div className="relative flex items-center justify-center p-1.5 sm:p-2 rounded-full bg-red-500/10 border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
-                                  <LogOut className="w-2.5 sm:w-4 h-2.5 sm:h-4 text-red-500 rotate-90" />
-                                </div>
-                              </button>
-                            </span>
-                        </h2>
-                      </div>
-                      
-                    </div>
-                    </div>
-                    
-                    {/* Genius Stats Row - Better mobile spacing */}
-                    <div className="mt-4 sm:mt-10 grid grid-cols-3 gap-2 sm:gap-8 w-full max-w-xl px-2 sm:px-4">
-                      {/* Health Score */}
-                      <div className="flex flex-col items-center space-y-1.5 sm:space-y-3 group/stat transition-all duration-300 hover:scale-105 sm:hover:scale-110">
-                        <p className={cn("text-[6px] sm:text-[9px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em]", theme === 'light' ? "text-slate-900/20" : "text-white/20")}>Health Score</p>
+                        {/* Desktop: Horizontal Layout */}
                         <div className={cn(
-                          "flex items-center gap-1 sm:gap-2 px-1.5 sm:px-4 py-1 sm:py-2 rounded-lg sm:rounded-xl text-[9px] sm:text-xs font-black tracking-tight transition-all",
-                          geniusMetrics.healthScore > 60 
-                            ? "bg-green-500/10 text-green-500" 
-                            : "bg-red-500/10 text-red-500"
+                          "hidden sm:flex items-center transition-all duration-500",
+                          isScrolled ? "gap-4" : "justify-center gap-8 lg:gap-12 w-full"
                         )}>
-                          <Sparkles className="w-2 sm:w-3 h-2 sm:h-3" />
-                          {geniusMetrics.healthScore}%
+                          {sessions.map((session) => (
+                            <div key={session.name} className="flex items-center gap-2 group/session">
+                              <div className={cn(
+                                "rounded-full transition-all duration-500",
+                                session.active 
+                                  ? "bg-primary animate-pulse" 
+                                  : theme === 'light' ? "bg-black/10" : "bg-white/10",
+                                isScrolled ? "w-1 h-1" : "w-1.5 h-1.5"
+                              )} />
+                              <span className={cn(
+                                "font-black uppercase tracking-[0.2em] transition-colors duration-300",
+                                session.active ? "text-primary" : theme === 'light' ? "text-slate-900/40" : "text-white/40",
+                                isScrolled ? "text-[8px]" : "text-[11px]"
+                              )}>
+                                {session.name}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                      
-                      {/* 30D Projection */}
-                      <div className="flex flex-col items-center space-y-1.5 sm:space-y-3 group/stat transition-all duration-300 hover:scale-105 sm:hover:scale-110">
-                        <p className={cn("text-[6px] sm:text-[9px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em]", theme === 'light' ? "text-slate-900/20" : "text-white/20")}>Projected 30D</p>
-                        <div className="flex flex-col items-center">
-                          <p className={cn("text-xs sm:text-xl font-black tracking-tighter", theme === 'light' ? "text-slate-900/90" : "text-white/90")}>
-                            <span className={cn("text-[9px] sm:text-xs font-light mr-0.5", theme === 'light' ? "text-slate-900/30" : "text-white/30")}>$</span>
-                            {Math.round(geniusMetrics.projected30D).toLocaleString()}
-                          </p>
-                          <div className="flex items-center gap-0.5 text-[6px] sm:text-[8px] font-black text-primary uppercase tracking-widest opacity-60">
-                            <TrendingUp className="w-1.5 h-1.5" />
-                            Forecast
+
+                      {/* Balance - Center Column on scroll */}
+                      <div className={cn(
+                        "flex flex-col items-center relative py-1 transition-all duration-700",
+                        isScrolled ? "flex-1 flex justify-center scale-90" : "gap-1 sm:gap-2"
+                      )}>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <div className={cn(
+                            "relative group/dollar transition-all duration-700",
+                            isScrolled ? "scale-75 opacity-40" : "scale-100"
+                          )}>
+                            <span className="text-xl xs:text-2xl sm:text-4xl font-extralight bg-gradient-to-b from-primary via-primary/80 to-primary/40 bg-clip-text text-transparent select-none">
+                              $
+                            </span>
+                          </div>
+                          <h2 className={cn(
+                            "font-black tracking-tighter flex items-baseline transition-all duration-700", 
+                            theme === 'light' ? "text-slate-900" : "text-white",
+                            isScrolled ? "text-3xl xs:text-4xl sm:text-6xl" : "text-3xl xs:text-5xl sm:text-8xl"
+                          )}>
+                            {Math.floor(currentCapital).toLocaleString()}
+                            <span className={cn(
+                              "text-primary flex items-baseline relative group/balance-dec transition-all duration-700",
+                              isScrolled ? "text-sm xs:text-base sm:text-xl" : "text-lg xs:text-xl sm:text-4xl"
+                            )}>
+                                <span className="mx-0.5">.</span>
+                                <span className="ml-0.5 tracking-tight">
+                                  {((currentCapital % 1) * 100).toFixed(0).padStart(2, '0')}
+                                </span>
+                            </span>
+                            {/* Withdrawal Icon - Moved next to balance */}
+                            <button 
+                               onClick={(e) => { 
+                                 e.stopPropagation();
+                                 setIsAddingWithdrawal(true); 
+                                 haptic('medium'); 
+                               }}
+                               className={cn(
+                                 "ml-3 sm:ml-6 flex items-center self-center active:scale-90 transition-all duration-700",
+                                 isScrolled ? "opacity-0 scale-0 pointer-events-none" : "opacity-100 scale-100"
+                               )}
+                             >
+                              <div className="relative flex items-center justify-center p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-red-500/10 border border-red-500/20 shadow-lg hover:bg-red-500/20 transition-colors">
+                                <LogOut className="w-3.5 sm:w-5 h-3.5 sm:h-5 text-red-500 rotate-90" />
+                              </div>
+                            </button>
+                          </h2>
+                        </div>
+                      </div>
+
+                      {/* Genius Stats - Right Column on scroll */}
+                      <div className={cn(
+                        "transition-all duration-700",
+                        isScrolled ? "flex-none flex items-center gap-2 sm:gap-6" : "grid grid-cols-3 gap-2 sm:gap-8 w-full max-w-xl px-2 sm:px-4 mt-4 sm:mt-10"
+                      )}>
+                        {/* Health Score */}
+                        <div className={cn(
+                          "flex flex-col items-center justify-start transition-all duration-700",
+                          isScrolled ? "space-y-0" : "space-y-1.5 sm:space-y-3"
+                        )}>
+                          <div className={cn("flex items-center justify-center", isScrolled ? "h-3" : "h-5")}>
+                            <p className={cn(
+                              "font-black uppercase tracking-[0.2em] leading-none transition-all duration-500", 
+                              theme === 'light' ? "text-slate-900/20" : "text-white/20",
+                              isScrolled ? "text-[6px] sm:text-[8px]" : "text-[8px] sm:text-[10px]"
+                            )}>Health Score</p>
+                          </div>
+                          <div className={cn(
+                            "flex items-center gap-1 font-black tracking-tight transition-all duration-500",
+                            geniusMetrics.healthScore > 60 ? "text-emerald-500" : "text-rose-500",
+                            isScrolled ? "text-[7px] sm:text-[10px]" : "px-1.5 sm:px-4 py-1 sm:py-2 rounded-lg sm:rounded-xl bg-primary/10 text-[9px] sm:text-xs"
+                          )}>
+                            <Sparkles className={cn("transition-all duration-500", isScrolled ? "w-1 h-1 sm:w-2 sm:h-2" : "w-2 sm:w-3 h-2 sm:h-3")} />
+                            {geniusMetrics.healthScore}%
                           </div>
                         </div>
-                      </div>
-                      
-                      {/* Growth */}
-                      <div className="flex flex-col items-center space-y-1.5 sm:space-y-3 group/stat transition-all duration-300 hover:scale-105 sm:hover:scale-110">
-                        <p className={cn("text-[6px] sm:text-[9px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em]", theme === 'light' ? "text-slate-900/20" : "text-white/20")}>Performance</p>
+                        
+                        {/* 30D Projection */}
                         <div className={cn(
-                          "flex items-center gap-1 sm:gap-2 px-1.5 sm:px-4 py-1 sm:py-2 rounded-lg sm:rounded-xl text-[9px] sm:text-xs font-black tracking-tight transition-all",
-                          stats.totalProfit >= 0 
-                            ? "bg-green-500/10 text-green-500" 
-                            : "bg-red-500/10 text-red-500"
+                          "flex flex-col items-center justify-start transition-all duration-700",
+                          isScrolled ? "space-y-0" : "space-y-1.5 sm:space-y-3"
                         )}>
-                          {stats.totalProfit >= 0 ? (
-                            <TrendingUp className="w-2 sm:w-3 h-2 sm:h-3" />
-                          ) : (
-                            <TrendingDown className="w-2 sm:w-3 h-2 sm:h-3" />
-                          )}
-                          {Math.abs((stats.totalProfit / initialCapital) * 100).toFixed(1)}%
+                          <div className={cn("flex items-center justify-center", isScrolled ? "h-3" : "h-5")}>
+                            <p className={cn(
+                              "font-black uppercase tracking-[0.2em] leading-none transition-all duration-500 pt-[2px]", 
+                              theme === 'light' ? "text-slate-900/20" : "text-white/20",
+                              isScrolled ? "text-[6px] sm:text-[8px]" : "text-[8px] sm:text-[10px]"
+                            )}>Projected 30D</p>
+                          </div>
+                          <div className={cn("flex flex-col items-center justify-center", isScrolled ? "" : "h-8 sm:h-10")}>
+                            <p className={cn(
+                              "font-black tracking-tighter transition-all duration-500", 
+                              theme === 'light' ? "text-slate-900/90" : "text-white/90",
+                              isScrolled ? "text-[8px] sm:text-[12px]" : "text-xs sm:text-xl"
+                            )}>
+                              <span className={cn(
+                                "font-light mr-0.5 transition-all duration-500", 
+                                theme === 'light' ? "text-slate-900/30" : "text-white/30",
+                                isScrolled ? "text-[5px] sm:text-[7px]" : "text-[9px] sm:text-xs"
+                              )}>$</span>
+                              {Math.round(geniusMetrics.projected30D).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Performance */}
+                        <div className={cn(
+                          "flex flex-col items-center justify-start transition-all duration-700",
+                          isScrolled ? "space-y-0" : "space-y-1.5 sm:space-y-3"
+                        )}>
+                          <div className={cn("flex items-center justify-center", isScrolled ? "h-3" : "h-5")}>
+                            <p className={cn(
+                              "font-black uppercase tracking-[0.2em] leading-none transition-all duration-500", 
+                              theme === 'light' ? "text-slate-900/20" : "text-white/20",
+                              isScrolled ? "text-[6px] sm:text-[8px]" : "text-[8px] sm:text-[10px]"
+                            )}>Performance</p>
+                          </div>
+                          <div className={cn(
+                            "flex items-center gap-1 font-black tracking-tight transition-all duration-500",
+                            stats.totalProfit >= 0 ? "text-emerald-500" : "text-rose-500",
+                            isScrolled ? "text-[7px] sm:text-[10px]" : "px-1.5 sm:px-4 py-1 sm:py-2 rounded-lg sm:rounded-xl bg-primary/10 text-[9px] sm:text-xs"
+                          )}>
+                            {stats.totalProfit >= 0 ? (
+                              <TrendingUp className={cn("transition-all duration-500", isScrolled ? "w-1 h-1 sm:w-2 sm:h-2" : "w-2 sm:w-3 h-2 sm:h-3")} />
+                            ) : (
+                              <TrendingDown className={cn("transition-all duration-500", isScrolled ? "w-1 h-1 sm:w-2 sm:h-2" : "w-2 sm:w-3 h-2 sm:h-3")} />
+                            )}
+                            {Math.abs((stats.totalProfit / initialCapital) * 100).toFixed(1)}%
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1204,10 +1295,15 @@ function App() {
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Smart Insights Section */}
-            {insights.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-4 sm:px-0">
+            {/* Scrollable Content Section */}
+            <div className={cn(
+              "space-y-6 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]"
+            )}>
+              {/* Smart Insights Section */}
+              {insights.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-4 sm:px-0">
                 {insights.map((insight, index) => (
                   <div 
                     key={index}
@@ -1312,7 +1408,7 @@ function App() {
               </div>
             )}
 
-            <div className="space-y-4 px-4 sm:px-0">
+            <div className="space-y-4 px-2 sm:px-0">
               <div className="flex flex-col items-center justify-center mb-4">
                 <div className={cn(
                   "inline-flex items-center gap-2.5 px-6 py-2 border rounded-full shadow-2xl",
@@ -1400,7 +1496,8 @@ function App() {
               </div>
             </div>
           </div>
-        );
+        </div>
+      );
       case 'analytics':
         return (
           <div className="space-y-6 animate-fade-in pb-32">
@@ -1490,141 +1587,174 @@ function App() {
 
         return (
           <div className="space-y-10 animate-fade-in pb-32">
-            <div className="flex flex-col items-center justify-center mb-6">
-              <div className={cn(
-                "inline-flex items-center gap-2.5 px-6 py-2 border rounded-full shadow-2xl",
-                theme === 'light' ? "bg-black/[0.02] border-black/[0.05]" : "bg-white/[0.02] backdrop-blur-md border border-white/[0.05]"
+            {/* Sticky Header Section - Trade Report Header and Filters */}
+            <div className={cn(
+                "sticky top-0 z-[100] transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
+                isScrolled ? "pt-2 pb-0" : "pt-0 pb-2"
               )}>
-                <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_12px_rgba(59,130,245,0.6)] animate-pulse" />
-                <p className={cn("text-[11px] font-black uppercase tracking-[0.5em]", theme === 'light' ? "text-slate-900/30" : "text-white/30")}>Trade Report</p>
-              </div>
-            </div>
+              {/* Transparent Mask - Background blur when scrolled */}
+              <div className={cn(
+                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter]",
+                  isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
+                )} style={{ 
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
+                }} />
 
-            {(reportTrades.length > 0 || records.some(r => r.type === 'withdrawal')) && (
-              <div className="px-4">
+              <div className={cn(
+                "flex flex-col items-center justify-center transition-all duration-700",
+                isScrolled ? "opacity-0 h-0 overflow-hidden mb-0" : "opacity-100 h-auto mb-6"
+              )}>
                 <div className={cn(
-                  "border rounded-[2rem] p-2 sm:p-3 backdrop-blur-md",
-                  theme === 'light' ? "bg-white/40 border-white/50" : "bg-white/[0.02] border-white/[0.05]"
+                  "inline-flex items-center gap-2.5 px-6 py-2 border rounded-full shadow-2xl",
+                  theme === 'light' ? "bg-black/[0.02] border-black/[0.05]" : "bg-white/[0.02] backdrop-blur-md border border-white/[0.05]"
                 )}>
-                  <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
-                    {/* Status Filters - Segmented Style */}
-                    <div className={cn(
-                      "flex-1 flex rounded-2xl p-1 gap-1",
-                      theme === 'light' ? "bg-black/5" : "bg-black/20"
-                    )}>
-                      <button 
-                        onClick={() => { setReportStatusFilter('all'); haptic('light'); }}
-                        className={cn(
-                          "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all duration-500",
-                          reportStatusFilter === 'all' 
-                            ? "bg-primary text-black shadow-lg shadow-primary/20 font-black" 
-                            : (theme === 'light' ? "text-slate-900/30 hover:text-slate-900/50" : "text-white/30 hover:text-white/50") + " font-bold"
-                        )}
-                      >
-                        <span className="text-[10px] uppercase tracking-widest">All</span>
-                        <span className={cn(
-                          "text-[9px] px-1.5 py-0.5 rounded-md",
-                          reportStatusFilter === 'all' ? "bg-black/10" : (theme === 'light' ? "bg-black/5" : "bg-white/5")
-                        )}>{counts.total}</span>
-                      </button>
-                      
-                      <button 
-                        onClick={() => { setReportStatusFilter('win'); haptic('light'); }}
-                        className={cn(
-                          "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all duration-500",
-                          reportStatusFilter === 'win' 
-                            ? "bg-green-500 text-white shadow-lg shadow-green-500/20 font-black" 
-                            : (theme === 'light' ? "text-slate-900/30 hover:text-slate-900/50" : "text-white/30 hover:text-white/50") + " font-bold"
-                        )}
-                      >
-                        <span className="text-[10px] uppercase tracking-widest">Wins</span>
-                        <span className={cn(
-                          "text-[9px] px-1.5 py-0.5 rounded-md",
-                          reportStatusFilter === 'win' ? "bg-black/10" : (theme === 'light' ? "bg-black/5" : "bg-white/5")
-                        )}>{counts.wins}</span>
-                      </button>
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_12px_rgba(59,130,245,0.6)] animate-pulse" />
+                  <p className={cn("text-[11px] font-black uppercase tracking-[0.5em]", theme === 'light' ? "text-slate-900/30" : "text-white/30")}>Trade Report</p>
+                </div>
+              </div>
 
-                      <button 
-                        onClick={() => { setReportStatusFilter('loss'); haptic('light'); }}
-                        className={cn(
-                          "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all duration-500",
-                          reportStatusFilter === 'loss' 
-                            ? "bg-red-500 text-white shadow-lg shadow-red-500/20 font-black" 
-                            : (theme === 'light' ? "text-slate-900/30 hover:text-slate-900/50" : "text-white/30 hover:text-white/50") + " font-bold"
-                        )}
-                      >
-                        <span className="text-[10px] uppercase tracking-widest">Losses</span>
-                        <span className={cn(
-                          "text-[9px] px-1.5 py-0.5 rounded-md",
-                          reportStatusFilter === 'loss' ? "bg-black/10" : (theme === 'light' ? "bg-black/5" : "bg-white/5")
-                        )}>{counts.losses}</span>
-                      </button>
-                    </div>
-
-                    <div className={cn("hidden lg:block w-px h-8", theme === 'light' ? "bg-black/[0.05]" : "bg-white/[0.05]")} />
-
-                    {/* Secondary Controls */}
-                    <div className="flex items-center gap-2">
-                      {/* Sort Toggle */}
-                      <button 
-                        onClick={() => {
-                          setReportSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
-                          haptic('light');
-                        }}
-                        className={cn(
-                          "flex-1 lg:flex-none flex items-center gap-3 px-5 py-3 border rounded-2xl transition-all group",
-                          theme === 'light' ? "bg-black/[0.02] border-black/[0.05] hover:bg-black/[0.05]" : "bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.05]"
-                        )}
-                      >
-                        <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:scale-110 transition-transform">
-                          {reportSortOrder === 'desc' ? (
-                            <TrendingDown className="w-3 h-3 text-primary" />
-                          ) : (
-                            <TrendingUp className="w-3 h-3 text-primary" />
-                          )}
-                        </div>
-                        <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
-                          {reportSortOrder === 'desc' ? 'Newest' : 'Oldest'}
-                        </span>
-                      </button>
-
-                      {/* Date Filter */}
+              {(reportTrades.length > 0 || records.some(r => r.type === 'withdrawal')) && (
+                <div className={cn(
+                  "px-2 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                  isScrolled ? "scale-[0.92] sm:scale-[0.95]" : "scale-100"
+                )}>
+                  <div className={cn(
+                    "border rounded-[2rem] p-2 sm:p-3 backdrop-blur-md shadow-2xl transition-all duration-700",
+                    theme === 'light' ? "bg-white/40 border-white/50" : "bg-white/[0.02] border-white/[0.05]",
+                    isScrolled ? "h-auto" : "h-auto"
+                  )}>
+                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+                      {/* Status Filters - Segmented Style */}
                       <div className={cn(
-                        "flex-1 lg:flex-none relative group flex items-center gap-3 px-5 py-3 rounded-2xl transition-all",
-                        theme === 'light' ? "bg-white/40 border border-white/50 hover:bg-white/60" : "bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05]"
+                        "flex-1 flex rounded-2xl p-1 gap-1",
+                        theme === 'light' ? "bg-black/5" : "bg-black/20"
                       )}>
-                        <div className="w-5 h-5 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20 group-hover:scale-110 transition-transform">
-                          <Clock className="w-3 h-3 text-amber-500" />
-                        </div>
-                        <input 
-                          type="date" 
-                          value={reportDateFilter}
-                          onChange={(e) => {
-                            setReportDateFilter(e.target.value);
+                        <button 
+                          onClick={() => { setReportStatusFilter('all'); haptic('light'); }}
+                          className={cn(
+                            "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all duration-500",
+                            reportStatusFilter === 'all' 
+                              ? "bg-primary text-black shadow-lg shadow-primary/20 font-black" 
+                              : (theme === 'light' ? "text-slate-900/30 hover:text-slate-900/50" : "text-white/30 hover:text-white/50") + " font-bold"
+                          )}
+                        >
+                          <span className="text-[10px] uppercase tracking-widest">All</span>
+                          <span className={cn(
+                            "text-[9px] px-1.5 py-0.5 rounded-md",
+                            reportStatusFilter === 'all' ? "bg-black/10" : (theme === 'light' ? "bg-black/5" : "bg-white/5")
+                          )}>{counts.total}</span>
+                        </button>
+                        
+                        <button 
+                          onClick={() => { setReportStatusFilter('win'); haptic('light'); }}
+                          className={cn(
+                            "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all duration-500",
+                            reportStatusFilter === 'win' 
+                              ? "bg-green-500 text-white shadow-lg shadow-green-500/20 font-black" 
+                              : (theme === 'light' ? "text-slate-900/30 hover:text-slate-900/50" : "text-white/30 hover:text-white/50") + " font-bold"
+                          )}
+                        >
+                          <span className="text-[10px] uppercase tracking-widest">Wins</span>
+                          <span className={cn(
+                            "text-[9px] px-1.5 py-0.5 rounded-md",
+                            reportStatusFilter === 'win' ? "bg-black/10" : (theme === 'light' ? "bg-black/5" : "bg-white/5")
+                          )}>{counts.wins}</span>
+                        </button>
+
+                        <button 
+                          onClick={() => { setReportStatusFilter('loss'); haptic('light'); }}
+                          className={cn(
+                            "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all duration-500",
+                            reportStatusFilter === 'loss' 
+                              ? "bg-red-500 text-white shadow-lg shadow-red-500/20 font-black" 
+                              : (theme === 'light' ? "text-slate-900/30 hover:text-slate-900/50" : "text-white/30 hover:text-white/50") + " font-bold"
+                          )}
+                        >
+                          <span className="text-[10px] uppercase tracking-widest">Losses</span>
+                          <span className={cn(
+                            "text-[9px] px-1.5 py-0.5 rounded-md",
+                            reportStatusFilter === 'loss' ? "bg-black/10" : (theme === 'light' ? "bg-black/5" : "bg-white/5")
+                          )}>{counts.losses}</span>
+                        </button>
+                      </div>
+
+                      <div className={cn(
+                        "hidden lg:block w-px h-8 transition-all duration-700", 
+                        theme === 'light' ? "bg-black/[0.05]" : "bg-white/[0.05]",
+                        isScrolled ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+                      )} />
+
+                      {/* Secondary Controls */}
+                      <div className={cn(
+                        "flex items-center gap-2 transition-all duration-700",
+                        isScrolled ? "opacity-0 h-0 overflow-hidden" : "opacity-100 h-auto"
+                      )}>
+                        {/* Sort Toggle */}
+                        <button 
+                          onClick={() => {
+                            setReportSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
                             haptic('light');
                           }}
                           className={cn(
-                            "bg-transparent text-[10px] font-black uppercase tracking-widest outline-none cursor-pointer w-full lg:w-auto",
-                            theme === 'light' ? "text-slate-600 [color-scheme:light]" : "text-white/60 [color-scheme:dark]"
+                            "flex-1 lg:flex-none flex items-center gap-3 px-5 py-3 border rounded-2xl transition-all group",
+                            theme === 'light' ? "bg-black/[0.02] border-black/[0.05] hover:bg-black/[0.05]" : "bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.05]"
                           )}
-                        />
-                        {reportDateFilter && (
-                          <button 
-                            onClick={() => {
-                              setReportDateFilter('');
-                              haptic('medium');
+                        >
+                          <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:scale-110 transition-transform">
+                            {reportSortOrder === 'desc' ? (
+                              <TrendingDown className="w-3 h-3 text-primary" />
+                            ) : (
+                              <TrendingUp className="w-3 h-3 text-primary" />
+                            )}
+                          </div>
+                          <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
+                            {reportSortOrder === 'desc' ? 'Newest' : 'Oldest'}
+                          </span>
+                        </button>
+
+                        {/* Date Filter */}
+                        <div className={cn(
+                          "flex-1 lg:flex-none relative group flex items-center gap-3 px-5 py-3 rounded-2xl transition-all",
+                          theme === 'light' ? "bg-white/40 border border-white/50 hover:bg-white/60" : "bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.05]"
+                        )}>
+                          <div className="w-5 h-5 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20 group-hover:scale-110 transition-transform">
+                            <Clock className="w-3 h-3 text-amber-500" />
+                          </div>
+                          <input 
+                            type="date" 
+                            value={reportDateFilter}
+                            onChange={(e) => {
+                              setReportDateFilter(e.target.value);
+                              haptic('light');
                             }}
-                            className="ml-1 p-0.5 hover:bg-white/10 rounded-full transition-colors"
-                          >
-                            <X className="w-3 h-3 text-white/40" />
-                          </button>
-                        )}
+                            className={cn(
+                              "bg-transparent text-[10px] font-black uppercase tracking-widest outline-none cursor-pointer w-full lg:w-auto",
+                              theme === 'light' ? "text-slate-600 [color-scheme:light]" : "text-white/60 [color-scheme:dark]"
+                            )}
+                          />
+                          {reportDateFilter && (
+                            <button 
+                              onClick={() => {
+                                setReportDateFilter('');
+                                haptic('medium');
+                              }}
+                              className="ml-1 p-0.5 hover:bg-white/10 rounded-full transition-colors"
+                            >
+                              <X className="w-3 h-3 text-white/40" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+
+            <div className={cn(
+              "space-y-10 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]"
+            )}>
 
             {combinedItems.length === 0 ? (
               <div className={cn(
@@ -1750,6 +1880,7 @@ function App() {
                 ))}
               </div>
             )}
+            </div>
           </div>
         );
       }
@@ -1757,31 +1888,59 @@ function App() {
         return (
           <div className="space-y-8 animate-fade-in pb-40 px-4">
             {/* Header Section */}
-            <div className="flex flex-col items-center mb-8">
-              <div className={cn(
-                "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-xl shadow-2xl relative group",
-                theme === 'light' ? "bg-white/60 border border-white/50 shadow-lg" : "bg-white/[0.03] border border-white/10"
+            <div className={cn(
+                "sticky top-0 z-[100] transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
+                isScrolled ? "pt-2 pb-0" : "pt-0 pb-2"
               )}>
-                <div className="absolute inset-0 bg-primary/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Settings className="w-8 h-8 text-primary animate-spin-slow relative z-10" />
-              </div>
-              
-              <div className="flex flex-col items-center space-y-0.5">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <div className="w-1 h-1 rounded-full bg-primary shadow-[0_0_8px_rgba(212,175,55,0.4)] animate-pulse" />
-                  <p className={cn("text-[8px] font-black uppercase tracking-[0.3em]", theme === 'light' ? "text-slate-400" : "text-white/20")}>Control Center</p>
+              {/* Transparent Mask - Background blur when scrolled */}
+              <div className={cn(
+                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter]",
+                  isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
+                )} style={{ 
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
+                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
+                }} />
+
+              <div className={cn(
+                "flex flex-col items-center mb-8 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                isScrolled ? "scale-90 translate-y-2" : "scale-100 translate-y-0"
+              )}>
+                <div className={cn(
+                  "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-xl shadow-2xl relative group transition-all duration-700",
+                  theme === 'light' ? "bg-white/60 border border-white/50 shadow-lg" : "bg-white/[0.03] border border-white/10",
+                  isScrolled ? "w-12 h-12 mb-2" : "w-16 h-16 mb-4"
+                )}>
+                  <div className="absolute inset-0 bg-primary/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Settings className={cn("text-primary animate-spin-slow relative z-10 transition-all duration-700", isScrolled ? "w-6 h-6" : "w-8 h-8")} />
                 </div>
-                <h2 className={cn("text-2xl font-black tracking-tighter uppercase leading-none", theme === 'light' ? "text-slate-800" : "text-white")}>
-                  App <span className="text-primary/70">Settings</span>
-                </h2>
+                
+                <div className="flex flex-col items-center space-y-0.5">
+                  <div className={cn(
+                    "flex items-center gap-1.5 mb-0.5 transition-all duration-500",
+                    isScrolled ? "opacity-0 h-0 overflow-hidden" : "opacity-100 h-auto"
+                  )}>
+                    <div className="w-1 h-1 rounded-full bg-primary shadow-[0_0_8px_rgba(212,175,55,0.4)] animate-pulse" />
+                    <p className={cn("text-[8px] font-black uppercase tracking-[0.3em]", theme === 'light' ? "text-slate-400" : "text-white/20")}>Control Center</p>
+                  </div>
+                  <h2 className={cn(
+                    "font-black tracking-tighter uppercase leading-none transition-all duration-700", 
+                    theme === 'light' ? "text-slate-800" : "text-white",
+                    isScrolled ? "text-xl" : "text-2xl"
+                  )}>
+                    App <span className="text-primary/70">Settings</span>
+                  </h2>
+                </div>
               </div>
             </div>
 
-            {/* Profile & Cloud Section */}
             <div className={cn(
-              "rounded-[2.5rem] p-6 backdrop-blur-md transition-all duration-300",
-              theme === 'light' ? "bg-white/60 border border-white/60 shadow-sm" : "bg-white/[0.02] border border-white/[0.05]"
+              "space-y-8 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]"
             )}>
+              {/* Profile & Cloud Section */}
+              <div className={cn(
+                "rounded-[2.5rem] p-6 backdrop-blur-md transition-all duration-300",
+                theme === 'light' ? "bg-white/60 border border-white/60 shadow-sm" : "bg-white/[0.02] border border-white/[0.05]"
+              )}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-6">
                 <div className="flex items-center gap-4">
                   <div className={cn(
@@ -2313,7 +2472,8 @@ function App() {
               </div>
             )}
           </div>
-        );
+        </div>
+      );
     }
   };
 
@@ -2371,7 +2531,7 @@ function App() {
       />
 
       {/* Main Content Area */}
-       <main className="flex-1 overflow-y-auto relative z-10 pt-[calc(env(safe-area-inset-top)+2rem)] px-4 sm:px-6 custom-scroll pb-32">
+       <main className="flex-1 overflow-y-auto relative z-10 pt-[calc(env(safe-area-inset-top)+2rem)] px-3 sm:px-6 custom-scroll pb-32">
         <div className="relative z-10 max-w-[1400px] mx-auto">
           {renderTabContent()}
         </div>

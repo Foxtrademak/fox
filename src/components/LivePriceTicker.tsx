@@ -49,7 +49,7 @@ const LivePriceTicker: React.FC<LivePriceTickerProps> = ({ theme = 'dark' }) => 
   }, [theme]);
 
   return (
-    <div className="w-full px-4 mb-8 animate-fade-in">
+    <div className="w-full px-0 sm:px-4 mb-8 animate-fade-in">
       <div className="max-w-[1400px] mx-auto">
         <div className="relative group">
           {/* Glass Card Container - Fixed Height and Overflow */}
@@ -69,12 +69,6 @@ const LivePriceTicker: React.FC<LivePriceTickerProps> = ({ theme = 'dark' }) => 
                 className="tradingview-widget-container w-full h-[72px] -mt-[1px]" 
               />
             </div>
-
-            {/* Logo Mask Layer - Absolute bottom protection */}
-            <div className={cn(
-              "absolute bottom-0 left-0 w-full h-[12px] z-[25]",
-              theme === 'light' ? "bg-white/90" : "bg-[#050505]"
-            )} />
           </div>
         </div>
       </div>

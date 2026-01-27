@@ -10,6 +10,19 @@ interface TradeChartProps {
   className?: string;
 }
 
+interface ChartPoint {
+  displayDate: string;
+  fullDate: string;
+  profit: number | null;
+  capital: number | null;
+  open: number | null;
+  close: number | null;
+  high: number | null;
+  low: number | null;
+  isStart: boolean;
+  isFuture: boolean;
+}
+
 export function TradeChart({ data, initialCapital, className }: TradeChartProps) {
   const [viewMode, setViewMode] = useState<'line' | 'candle'>('line');
 
@@ -34,9 +47,7 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
       return acc;
     }, {});
 
-    let runningCapital = initialCapital;
-    
-    const initialPoint = {
+    const initialPoint: ChartPoint = {
       displayDate: 'Start',
       fullDate: 'initial',
       profit: 0,
@@ -52,27 +63,28 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
     const sortedGroups = Object.values(groupedByDate)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    const allPoints = sortedGroups.map(group => {
-      const open = runningCapital;
+    let currentCapital = initialCapital;
+    const allPoints: ChartPoint[] = sortedGroups.map(group => {
+      const open = currentCapital;
       let dayHigh = open;
       let dayLow = open;
       let tempCap = open;
       
-      group.records.forEach(r => {
+      group.records.forEach((r: DailyRecord) => {
         const profit = r.profitLoss || 0;
         tempCap += profit;
         dayHigh = Math.max(dayHigh, tempCap);
         dayLow = Math.min(dayLow, tempCap);
       });
 
-      runningCapital += (group.profit || 0);
-      const close = runningCapital;
+      currentCapital += (group.profit || 0);
+      const close = currentCapital;
 
       return {
         displayDate: new Date(group.date).toLocaleDateString('en-US', { day: 'numeric', month: 'numeric' }),
         fullDate: group.date,
         profit: group.profit || 0,
-        capital: Number(runningCapital.toFixed(2)) || 0,
+        capital: Number(currentCapital.toFixed(2)) || 0,
         open: Number(open.toFixed(2)) || 0,
         close: Number(close.toFixed(2)) || 0,
         high: Number(dayHigh.toFixed(2)) || 0,
@@ -85,7 +97,7 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
     const combined = [initialPoint, ...allPoints];
     
     // Create a copy for future data (used for candle view)
-    const futureData = [...combined];
+    const futureData: ChartPoint[] = [...combined];
     if (futureData.length > 0) {
       const lastPoint = futureData[futureData.length - 1];
       const lastDate = new Date(lastPoint.fullDate === 'initial' ? new Date() : lastPoint.fullDate);
@@ -105,7 +117,7 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
           low: null,
           isStart: false,
           isFuture: true
-        } as any);
+        });
       }
     }
 
@@ -166,14 +178,22 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
       const percentage = (i / (activeData.length - 1)) * 100;
       let color = '#22c55e'; // Green (Positive)
       
-      if (i > 0) {
+      const currentCap = point.capital;
+      const prevPoint = i > 0 ? activeData[i-1] : null;
+      const prevCap = prevPoint ? prevPoint.capital : null;
+
+      if (i > 0 && currentCap !== null && prevCap !== null) {
         // If current capital is less than previous, it's a "retreat" (red)
-        if (point.capital !== null && activeData[i-1].capital !== null && point.capital < activeData[i-1].capital) {
+        if (currentCap < prevCap) {
           color = '#ff3b30'; // Red (Negative)
         }
-      } else if (activeData.length > 1 && activeData[1].capital !== null && activeData[0].capital !== null && activeData[1].capital < activeData[0].capital) {
-        // Special case for first point if the second point is a drop
-        color = '#ff3b30';
+      } else if (activeData.length > 1) {
+        const firstCap = activeData[0].capital;
+        const secondCap = activeData[1].capital;
+        if (firstCap !== null && secondCap !== null && secondCap < firstCap) {
+          // Special case for first point if the second point is a drop
+          color = '#ff3b30';
+        }
       }
       
       return (
@@ -196,6 +216,9 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
 
   const { candleGap, yDomain } = stats;
 
+  const lastRealPoint = realData[realData.length - 1];
+  const prevRealPoint = realData.length > 1 ? realData[realData.length - 2] : null;
+
   return (
     <div className={cn(
       "w-full h-full flex flex-col p-2 sm:p-6 pb-4 sm:pb-12 bg-transparent",
@@ -210,15 +233,15 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
             <h3 className="text-[7px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-white/20 mb-0.5">Portfolio Growth</h3>
             <div className="flex items-center gap-1.5 sm:gap-2">
               <span className="text-sm sm:text-xl font-black tracking-tighter text-white">${capitals[capitals.length - 1]?.toLocaleString() || '0'}</span>
-              {realData.length > 1 && realData[realData.length - 1].close !== null && realData[realData.length - 2]?.close !== null && (
+              {realData.length > 1 && lastRealPoint?.close !== null && prevRealPoint?.close !== null && prevRealPoint !== null && (
                 <span className={cn(
                   "text-[8px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-lg",
-                  realData[realData.length - 1].close >= realData[realData.length - 2].close 
+                  lastRealPoint.close >= prevRealPoint.close 
                     ? "text-green-500/80 bg-green-500/5" 
                     : "text-red-500/80 bg-red-500/5"
                 )}>
-                  {realData[realData.length - 1].close >= realData[realData.length - 2].close ? '+' : ''}
-                  {((realData[realData.length - 1].close - realData[realData.length - 2].close) / realData[realData.length - 2].close * 100).toFixed(2)}%
+                  {lastRealPoint.close >= prevRealPoint.close ? '+' : ''}
+                  {((lastRealPoint.close - prevRealPoint.close) / prevRealPoint.close * 100).toFixed(2)}%
                 </span>
               )}
             </div>
@@ -319,7 +342,7 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
                 }}
                 itemStyle={{ color: '#ffffff', padding: '0' }}
                 labelStyle={{ color: 'rgba(255,255,255,0.4)', marginBottom: '4px', fontSize: '8px', fontWeight: 'bold' }}
-                formatter={(value: any) => [`$${Math.round(value || 0)}`, 'Balance']}
+                formatter={(value: number) => [`$${Math.round(value || 0)}`, 'Balance']}
               />
               <Area 
                 type="monotone" 
@@ -367,9 +390,9 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
                 cursor={{ stroke: '#22c55e', strokeWidth: 1, strokeDasharray: '4 4' }}
                 content={({ active, payload, label }) => {
                   if (active && payload && payload.length) {
-                    const data = payload[0].payload;
-                    if (data.isStart) return null;
-                    if (data.isFuture) {
+                    const point = payload[0].payload as ChartPoint;
+                    if (point.isStart) return null;
+                    if (point.isFuture) {
                       return (
                         <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-2 rounded-xl shadow-2xl">
                           <span className="text-[10px] font-black text-white/40">{label}</span>
@@ -377,7 +400,7 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
                         </div>
                       );
                     }
-                    const isBullish = data.close >= data.open;
+                    const isBullish = (point.close ?? 0) >= (point.open ?? 0);
 
                     return (
                       <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-3 rounded-2xl shadow-2xl min-w-[140px]">
@@ -393,20 +416,20 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
                         <div className="space-y-1.5 font-sans">
                           <div className="flex justify-between text-[10px]">
                             <span className="text-white/40">O:</span>
-                            <span className="text-white font-bold">${data.open.toLocaleString()}</span>
+                            <span className="text-white font-bold">${point.open?.toLocaleString() || '0'}</span>
                           </div>
                           <div className="flex justify-between text-[10px]">
                             <span className="text-white/40">H:</span>
-                            <span className="text-[#22c55e] font-bold">${data.high.toLocaleString()}</span>
+                            <span className="text-[#22c55e] font-bold">${point.high?.toLocaleString() || '0'}</span>
                           </div>
                           <div className="flex justify-between text-[10px]">
                             <span className="text-white/40">L:</span>
-                            <span className="text-[#ff3b30] font-bold">${data.low.toLocaleString()}</span>
+                            <span className="text-[#ff3b30] font-bold">${point.low?.toLocaleString() || '0'}</span>
                           </div>
                           <div className="flex justify-between text-[10px] border-t border-white/5 pt-1 mt-1">
                             <span className="text-white/40">C:</span>
                             <span className={cn("font-black", isBullish ? "text-[#22c55e]" : "text-[#ff3b30]")}>
-                              ${data.close.toLocaleString()}
+                              ${point.close?.toLocaleString() || '0'}
                             </span>
                           </div>
                         </div>
@@ -417,9 +440,9 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
                 }}
               />
               <Bar
-                dataKey={(d: any) => [d.low ?? 0, d.high ?? 0]}
+                dataKey={(d: ChartPoint) => [d.low ?? 0, d.high ?? 0]}
                 isAnimationActive={false}
-                shape={(props: any) => {
+                shape={(props: { x: number, y: number, width: number, height: number, payload: ChartPoint }) => {
                   const { x, y, width, height, payload } = props;
                   if (!payload || payload.isStart || payload.isFuture || isNaN(x) || isNaN(y) || isNaN(width) || isNaN(height)) return null;
                   

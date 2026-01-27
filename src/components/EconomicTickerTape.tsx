@@ -46,7 +46,7 @@ const EconomicTickerTape: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full px-4 mb-4 animate-fade-in">
+    <div className="w-full px-0 sm:px-4 mb-4 animate-fade-in">
       <div className="max-w-[1400px] mx-auto">
         <div className="relative group">
           <div className="relative bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-xl h-[40px] flex items-center shadow-lg overflow-hidden">
@@ -58,7 +58,6 @@ const EconomicTickerTape: React.FC = () => {
                 className="tradingview-widget-container w-full h-[72px] -mt-[1px]" 
               />
             </div>
-            <div className="absolute bottom-0 left-0 w-full h-[12px] bg-[#050505] z-[25]" />
           </div>
         </div>
       </div>

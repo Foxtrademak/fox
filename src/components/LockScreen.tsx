@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Delete, ShieldCheck } from 'lucide-react';
 import { cn, haptic } from '../lib/utils';
 const logo = "app-logo-new.png";
@@ -22,16 +22,19 @@ export function LockScreen({ onUnlock, theme = 'dark' }: LockScreenProps) {
     }
   }, [savedPasscode]);
 
-  const handleNumberClick = (num: string) => {
+  const handleDelete = useCallback(() => {
+    setPasscode(prev => prev.slice(0, -1));
+    setError(false);
+  }, []);
+
+  const handleNumberClick = useCallback((num: string) => {
     if (passcode.length < 4) {
       const newPasscode = passcode + num;
       setPasscode(newPasscode);
       setError(false);
 
       if (newPasscode.length === 4) {
-        if (isSettingInitial) {
-          // Handled in useEffect
-        } else {
+        if (!isSettingInitial) {
           if (newPasscode === savedPasscode) {
             onUnlock();
           } else {
@@ -43,9 +46,9 @@ export function LockScreen({ onUnlock, theme = 'dark' }: LockScreenProps) {
         }
       }
     }
-  };
+  }, [passcode, isSettingInitial, savedPasscode, onUnlock]);
 
-  const handleSetPasscode = () => {
+  const handleSetPasscode = useCallback(() => {
     if (isSettingInitial && passcode.length === 4) {
       if (!confirmPasscode) {
         setConfirmPasscode(passcode);
@@ -61,7 +64,7 @@ export function LockScreen({ onUnlock, theme = 'dark' }: LockScreenProps) {
         }
       }
     }
-  };
+  }, [isSettingInitial, passcode, confirmPasscode, onUnlock]);
 
   useEffect(() => {
     if (isSettingInitial && passcode.length === 4 && confirmPasscode) {
@@ -73,7 +76,7 @@ export function LockScreen({ onUnlock, theme = 'dark' }: LockScreenProps) {
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [passcode, isSettingInitial, confirmPasscode]);
+  }, [passcode, isSettingInitial, confirmPasscode, handleSetPasscode]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -91,12 +94,7 @@ export function LockScreen({ onUnlock, theme = 'dark' }: LockScreenProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [passcode, isSettingInitial, confirmPasscode, savedPasscode]);
-
-  const handleDelete = () => {
-    setPasscode(prev => prev.slice(0, -1));
-    setError(false);
-  };
+  }, [handleNumberClick, handleDelete]);
 
   return (
     <div className={cn(
