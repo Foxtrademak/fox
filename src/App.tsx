@@ -2336,7 +2336,7 @@ function App() {
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none">
         <div className="absolute inset-0 bg-black" />
         <img 
-          src="/background.png" 
+          src="background.png" 
           alt="" 
           className="absolute inset-0 w-full h-full object-cover opacity-100"
         />
