@@ -75,6 +75,24 @@ export function LockScreen({ onUnlock, theme = 'dark' }: LockScreenProps) {
     }
   }, [passcode, isSettingInitial, confirmPasscode]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Support number keys (0-9)
+      if (/^[0-9]$/.test(e.key)) {
+        handleNumberClick(e.key);
+        haptic('light');
+      }
+      // Support Backspace
+      else if (e.key === 'Backspace') {
+        handleDelete();
+        haptic('medium');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [passcode, isSettingInitial, confirmPasscode, savedPasscode]);
+
   const handleDelete = () => {
     setPasscode(prev => prev.slice(0, -1));
     setError(false);
