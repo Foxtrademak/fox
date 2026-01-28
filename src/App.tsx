@@ -1337,8 +1337,8 @@ function App() {
               )}>
               {/* Mobile Scrolled: Logo - Above the Card */}
               <div className={cn(
-                "hidden",
-                isScrolled && "flex sm:hidden items-center justify-center mb-1 absolute -top-8 left-0 right-0 z-50 animate-in fade-in slide-in-from-top-2 duration-500"
+                "hidden sm:hidden items-center justify-center mb-1 absolute left-0 right-0 z-50 transition-all duration-500 ease-out",
+                isScrolled ? "flex opacity-100 -top-8" : "opacity-0 top-0 pointer-events-none"
               )}>
                  <img 
                    src={logo} 
@@ -1357,15 +1357,15 @@ function App() {
                 }} />
 
               <div className={cn(
-                "relative group px-2 sm:px-0 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                "relative group px-2 sm:px-0 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
                 isScrolled ? "scale-[0.92] sm:scale-[0.95]" : "scale-100"
               )}>
                 <div className={cn(
-                  "ios-card transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] border-none outline-none ring-0 relative",
+                  "ios-card transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] border-none outline-none ring-0 relative overflow-hidden will-change-[padding,transform,opacity]",
                   theme === 'light' 
                     ? "bg-primary/5 shadow-none" 
                     : "bg-transparent shadow-none",
-                  isScrolled ? "pt-1.5 pb-1.5 h-[85px] sm:h-[130px]" : "pt-6 pb-10 h-auto shadow-2xl"
+                  isScrolled ? "pt-1.5 pb-1.5" : "pt-6 pb-10 shadow-2xl"
                 )}>
                   {/* Glass Edge Highlight */}
                   <div 
@@ -1381,14 +1381,14 @@ function App() {
 
                   {/* Theme-based Edge Border Overlay */}
                   <div className={cn(
-                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-700",
+                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-500",
                     theme === 'light' ? "border-[0.2px] border-black/5" : "border-none",
                     "shadow-[0_0_1px_rgba(255,255,255,0.05)]"
                   )} />
 
                   {/* Bottom Blur Effect for Card on scroll - Hidden to avoid double blur */}
                   <div className={cn(
-                    "absolute inset-x-0 bottom-0 h-1/2 pointer-events-none transition-opacity duration-700 hidden",
+                    "absolute inset-x-0 bottom-0 h-1/2 pointer-events-none transition-opacity duration-500 hidden",
                     isScrolled ? "opacity-100" : "opacity-0"
                   )} style={{
                     background: theme === 'dark' 
@@ -1422,12 +1422,12 @@ function App() {
                   </div>
 
                   <div className={cn(
-                    "relative z-10 flex flex-col items-center text-center space-y-2 sm:space-y-4 transition-all duration-700",
+                    "relative z-10 flex flex-col items-center text-center space-y-2 sm:space-y-4 transition-all duration-500",
                     isScrolled ? "pt-1 sm:pt-0" : "pt-12 sm:pt-0"
                   )}>
                     {/* Vertical Side Label */}
                     <div className={cn(
-                      "absolute left-0 top-0 bottom-0 w-8 sm:w-12 hidden xs:flex items-center justify-center border-r backdrop-blur-md rounded-l-[2.5rem] overflow-hidden z-20 transition-all duration-700",
+                      "absolute left-0 top-0 bottom-0 w-8 sm:w-12 hidden xs:flex items-center justify-center border-r backdrop-blur-md rounded-l-[2.5rem] overflow-hidden z-20 transition-all duration-500",
                       theme === 'light' ? "bg-black/[0.05] border-black/[0.05]" : "bg-white/[0.05] border-white/[0.05]",
                       isScrolled ? "opacity-0 -translate-x-full" : "opacity-100 translate-x-0"
                     )}>
@@ -1439,23 +1439,23 @@ function App() {
                     </div>
 
                     <div className={cn(
-                      "relative flex flex-col items-center w-full transition-all duration-700",
+                      "relative flex flex-col items-center w-full transition-all duration-500",
                       isScrolled ? "xs:pl-0 px-2 sm:px-6" : "xs:pl-8 sm:pl-0"
                     )}>
                       <div className={cn(
-                      "relative w-full transition-all duration-700",
+                      "relative w-full transition-all duration-500",
                       isScrolled ? "flex flex-col sm:flex-row items-center justify-center sm:justify-between px-2 sm:gap-8" : "flex flex-col items-center justify-center gap-2 sm:gap-4"
                     )}>
                         
                       {/* Market Sessions - Left Column on scroll */}
                       <div className={cn(
-                        "transition-all duration-700",
+                        "transition-all duration-500",
                         isScrolled ? "flex-none order-first opacity-100 w-full sm:w-auto flex flex-col items-center justify-center" : "w-full mb-2 opacity-100 h-auto"
                       )}>
                         {/* Mobile Scrolled: Text Only - The "Stock Names" user requested */}
                         <div className={cn(
-                          "hidden",
-                          isScrolled && "flex sm:hidden items-center gap-2 mb-1 animate-in fade-in zoom-in duration-300"
+                          "hidden sm:hidden items-center gap-2 mb-1 transition-all duration-500",
+                          isScrolled ? "flex opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
                         )}>
                            <span className={cn(
                               "text-[9px] uppercase tracking-[0.2em] font-bold opacity-50",
@@ -1520,12 +1520,12 @@ function App() {
 
                       {/* Balance - Center Column on scroll */}
                       <div className={cn(
-                        "flex flex-col items-center relative py-1 transition-all duration-700",
+                        "flex flex-col items-center relative py-1 transition-all duration-500",
                         isScrolled ? "flex-1 flex justify-center scale-100 sm:scale-90" : "gap-1 sm:gap-2"
                       )}>
                         <div className="flex items-center gap-1.5 sm:gap-2">
                           <div className={cn(
-                            "relative group/dollar transition-all duration-700",
+                            "relative group/dollar transition-all duration-500",
                             isScrolled ? "scale-75 opacity-40" : "scale-100"
                           )}>
                             <span className="text-xl xs:text-2xl sm:text-4xl font-extralight bg-gradient-to-b from-primary via-primary/80 to-primary/40 bg-clip-text text-transparent select-none">
@@ -1533,13 +1533,13 @@ function App() {
                             </span>
                           </div>
                           <h2 className={cn(
-                            "font-black tracking-tighter flex items-baseline transition-all duration-700", 
+                            "font-black tracking-tighter flex items-baseline transition-all duration-500", 
                             theme === 'light' ? "text-slate-900" : "bg-gradient-to-b from-white via-white/80 to-white/30 bg-clip-text text-transparent drop-shadow-[0_4px_10px_rgba(255,255,255,0.2)]",
                             isScrolled ? "text-4xl sm:text-7xl" : "text-3xl xs:text-5xl sm:text-8xl"
                           )}>
                             {Math.floor(currentCapital).toLocaleString()}
                             <span className={cn(
-                              "flex items-baseline relative group/balance-dec transition-all duration-700",
+                              "flex items-baseline relative group/balance-dec transition-all duration-500",
                               theme === 'light' ? "text-primary" : "bg-gradient-to-b from-white via-white/80 to-white/30 bg-clip-text text-transparent drop-shadow-[0_2px_5px_rgba(255,255,255,0.15)]",
                               isScrolled ? "text-xl sm:text-xl" : "text-lg xs:text-xl sm:text-4xl"
                             )}>
@@ -1556,7 +1556,7 @@ function App() {
                                  haptic('medium'); 
                                }}
                                className={cn(
-                                 "ml-3 sm:ml-6 flex items-center self-center active:scale-90 transition-all duration-700",
+                                 "ml-3 sm:ml-6 flex items-center self-center active:scale-90 transition-all duration-500",
                                  isScrolled ? "hidden opacity-0 scale-0 pointer-events-none" : "opacity-100 scale-100"
                                )}
                              >
@@ -1570,12 +1570,12 @@ function App() {
 
                       {/* Genius Stats - Right Column on scroll */}
                       <div className={cn(
-                        "transition-all duration-700 w-full px-2 sm:px-4",
+                        "transition-all duration-500 w-full px-2 sm:px-4",
                         isScrolled ? "hidden sm:grid sm:grid-cols-3 sm:gap-x-10 sm:gap-y-0 sm:mt-0 sm:max-w-md sm:justify-end" : "grid grid-cols-3 gap-2 sm:gap-8 mt-4 sm:mt-10 max-w-xl"
                       )}>
                         {/* Health Score */}
                         <div className={cn(
-                          "flex flex-col transition-all duration-700",
+                          "flex flex-col transition-all duration-500",
                           isScrolled ? "items-center space-y-0.5" : "items-center space-y-1.5 sm:space-y-3"
                         )}>
                           <div className={cn("flex items-center justify-center", isScrolled ? "h-3" : "h-5")}>
@@ -1597,7 +1597,7 @@ function App() {
                         
                         {/* 30D Projection */}
                         <div className={cn(
-                          "flex flex-col transition-all duration-700",
+                          "flex flex-col transition-all duration-500",
                           isScrolled ? "hidden sm:flex items-center space-y-0.5" : "items-center space-y-1.5 sm:space-y-3"
                         )}>
                           <div className={cn("flex items-center justify-center", isScrolled ? "h-3" : "h-5")}>
@@ -1625,7 +1625,7 @@ function App() {
                         
                         {/* Performance */}
                         <div className={cn(
-                          "flex flex-col transition-all duration-700",
+                          "flex flex-col transition-all duration-500",
                           isScrolled ? "items-center space-y-0.5" : "items-center space-y-1.5 sm:space-y-3"
                         )}>
                           <div className={cn("flex items-center justify-center", isScrolled ? "h-3" : "h-5")}>
@@ -1658,7 +1658,7 @@ function App() {
 
             {/* Scrollable Content Section */}
             <div className={cn(
-              "space-y-6 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]"
+              "space-y-6 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]"
             )}>
               {/* Smart Insights Section */}
               {insights.length > 0 && (
@@ -1719,7 +1719,7 @@ function App() {
                 <div className="ios-card p-6 space-y-4 relative overflow-hidden">
                   {/* Theme-based Edge Border Overlay */}
                   <div className={cn(
-                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-700",
+                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-500",
                     theme === 'light' ? "border-[0.2px] border-black/5" : "border-[0.2px] border-white/10",
                     "shadow-[0_0_1px_rgba(255,255,255,0.05)]"
                   )} />
@@ -1750,7 +1750,7 @@ function App() {
                 <div className="ios-card p-6 space-y-4 relative overflow-hidden">
                   {/* Theme-based Edge Border Overlay */}
                   <div className={cn(
-                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-700",
+                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-500",
                     theme === 'light' ? "border-[0.2px] border-black/5" : "border-[0.2px] border-white/10",
                     "shadow-[0_0_1px_rgba(255,255,255,0.05)]"
                   )} />
@@ -1979,8 +1979,8 @@ function App() {
 
               {/* Mobile Scrolled: Logo - Above the Card */}
               <div className={cn(
-                "hidden",
-                isScrolled && "flex sm:hidden items-center justify-center mb-1 absolute -top-8 left-0 right-0 z-50 animate-in fade-in slide-in-from-top-2 duration-500"
+                "hidden sm:hidden items-center justify-center mb-1 absolute left-0 right-0 z-50 transition-all duration-500 ease-out",
+                isScrolled ? "flex opacity-100 -top-8" : "opacity-0 top-0 pointer-events-none"
               )}>
                  <img 
                    src={logo} 
@@ -1990,7 +1990,7 @@ function App() {
               </div>
 
               <div className={cn(
-                "flex flex-col items-center justify-center transition-all duration-700",
+                "flex flex-col items-center justify-center transition-all duration-500",
                 isScrolled ? "opacity-0 h-0 overflow-hidden mb-0" : "opacity-100 h-auto mb-6"
               )}>
                 <div className={cn(
@@ -2004,10 +2004,10 @@ function App() {
 
               {(reportTrades.length > 0 || records.some(r => r.type === 'withdrawal')) && (
                 <div className={cn(
-                  "px-2 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                  "px-2 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
                   isScrolled ? "scale-[0.92] sm:scale-[0.95]" : "scale-100"
                 )}>
-                  <div className="ios-card overflow-visible p-2 sm:p-3 shadow-2xl transition-all duration-700">
+                  <div className="ios-card overflow-visible p-2 sm:p-3 shadow-2xl transition-all duration-500">
                     <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
                       {/* Status Filters - Segmented Style */}
                       <div className={cn(
@@ -2064,14 +2064,14 @@ function App() {
                       </div>
 
                       <div className={cn(
-                        "hidden lg:block w-px h-8 transition-all duration-700", 
+                        "hidden lg:block w-px h-8 transition-all duration-500", 
                         theme === 'light' ? "bg-black/[0.05]" : "bg-white/[0.05]",
                         isScrolled ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
                       )} />
 
                       {/* Secondary Controls */}
                       <div className={cn(
-                        "flex items-center gap-2 transition-all duration-700",
+                        "flex items-center gap-2 transition-all duration-500",
                         isScrolled ? "opacity-0 h-0 overflow-hidden" : "opacity-100 h-auto"
                       )}>
                         {/* Sort Toggle */}
@@ -2143,7 +2143,7 @@ function App() {
             </div>
 
             <div className={cn(
-              "space-y-10 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]"
+              "space-y-10 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]"
             )}>
 
             {combinedItems.length === 0 ? (
@@ -2296,8 +2296,8 @@ function App() {
 
               {/* Mobile Scrolled: Logo - Above the Card */}
               <div className={cn(
-                "hidden",
-                isScrolled && "flex sm:hidden items-center justify-center mb-1 absolute -top-8 left-0 right-0 z-50 animate-in fade-in slide-in-from-top-2 duration-500"
+                "hidden sm:hidden items-center justify-center mb-1 absolute left-0 right-0 z-50 transition-all duration-500 ease-out",
+                isScrolled ? "flex opacity-100 -top-8" : "opacity-0 top-0 pointer-events-none"
               )}>
                  <img 
                    src={logo} 
@@ -2307,16 +2307,16 @@ function App() {
               </div>
 
               <div className={cn(
-                "flex flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                "flex flex-col items-center transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
                 isScrolled ? "opacity-0 h-0 overflow-hidden mb-0 scale-90" : "opacity-100 h-auto mb-8 scale-100"
               )}>
                 <div className={cn(
-                  "w-16 h-16 ios-card-mini overflow-visible p-0 flex items-center justify-center mb-4 shadow-2xl relative group transition-all duration-700",
+                  "w-16 h-16 ios-card-mini overflow-visible p-0 flex items-center justify-center mb-4 shadow-2xl relative group transition-all duration-500",
                   theme === 'light' ? "bg-white/60 border border-white/50 shadow-lg" : "bg-white/[0.06] border border-white/10",
                   isScrolled ? "w-12 h-12 mb-2" : "w-16 h-16 mb-4"
                 )}>
                   <div className="absolute inset-0 bg-primary/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <Settings className={cn("text-primary animate-spin-slow relative z-10 transition-all duration-700", isScrolled ? "w-6 h-6" : "w-8 h-8")} />
+                  <Settings className={cn("text-primary animate-spin-slow relative z-10 transition-all duration-500", isScrolled ? "w-6 h-6" : "w-8 h-8")} />
                 </div>
                 
                 <div className="flex flex-col items-center space-y-0.5">
@@ -2328,7 +2328,7 @@ function App() {
                     <p className={cn("text-[8px] font-black uppercase tracking-[0.3em]", theme === 'light' ? "text-slate-400" : "text-white/20")}>Control Center</p>
                   </div>
                   <h2 className={cn(
-                    "font-black tracking-tighter uppercase leading-none transition-all duration-700", 
+                    "font-black tracking-tighter uppercase leading-none transition-all duration-500", 
                     theme === 'light' ? "text-slate-800" : "text-white",
                     isScrolled ? "text-xl" : "text-2xl"
                   )}>
@@ -2338,9 +2338,9 @@ function App() {
               </div>
             </div>
 
-            <div className="space-y-8 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]">
+            <div className="space-y-8 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]">
               {/* Profile & Cloud Section */}
-              <div className="ios-card overflow-visible p-4 sm:p-6 shadow-2xl transition-all duration-700">
+              <div className="ios-card overflow-visible p-4 sm:p-6 shadow-2xl transition-all duration-500">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-6">
                   <div className="flex items-center gap-4">
                     <div className={cn(
@@ -2680,7 +2680,7 @@ function App() {
                   </div>
                   <span className={cn("text-xs font-black uppercase tracking-widest", theme === 'light' ? "text-sky-600" : "text-sky-500/70")}>Force Update</span>
                 </div>
-                <RefreshCcw className="w-5 h-5 text-sky-500/20 group-hover:rotate-180 transition-transform duration-700" />
+                <RefreshCcw className="w-5 h-5 text-sky-500/20 group-hover:rotate-180 transition-transform duration-500" />
               </button>
             </div>
 
@@ -2700,7 +2700,7 @@ function App() {
                 )}>
                   {/* Glass Edge Border Overlay */}
                   <div className={cn(
-                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-700",
+                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-500",
                     theme === 'light' ? "border-[0.5px] border-black/5" : "border-[0.5px] border-white/20",
                     "shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]"
                   )} />
@@ -2762,7 +2762,7 @@ function App() {
                 )}>
                   {/* Glass Edge Border Overlay */}
                   <div className={cn(
-                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-700",
+                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-500",
                     theme === 'light' ? "border-[0.5px] border-black/5" : "border-[0.5px] border-white/20",
                     "shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]"
                   )} />
@@ -2836,7 +2836,7 @@ function App() {
                 )}>
                   {/* Glass Edge Border Overlay */}
                   <div className={cn(
-                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-700",
+                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-500",
                     theme === 'light' ? "border-[0.5px] border-black/5" : "border-[0.5px] border-white/20",
                     "shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]"
                   )} />
@@ -2901,7 +2901,7 @@ function App() {
                 )}>
                   {/* Glass Edge Border Overlay */}
                   <div className={cn(
-                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-700",
+                    "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-500",
                     theme === 'light' ? "border-[0.5px] border-black/5" : "border-[0.5px] border-white/20",
                     "shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]"
                   )} />
@@ -3127,7 +3127,7 @@ function App() {
             )}>
               {/* Glass Edge Border Overlay */}
               <div className={cn(
-                "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-700",
+                "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-500",
                 theme === 'light' ? "border-[0.5px] border-black/5" : "border-[0.5px] border-white/20",
                 "shadow-[inset_0_0_1px_rgba(255,255,255,0.1)]"
               )} />

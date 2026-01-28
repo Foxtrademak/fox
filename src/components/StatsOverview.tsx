@@ -44,7 +44,7 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
   }, []);
 
   return (
-    <div className="max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10 px-0 sm:px-4 relative">
+    <div className="max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10 px-0 sm:px-4 relative">
       
       {/* iOS Top Fade Effect - Removed background gradients to keep it clean */}
       <div className={cn(
@@ -70,8 +70,8 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
 
         {/* Mobile Scrolled: Logo - Above the Card */}
         <div className={cn(
-          "hidden",
-          isScrolled && "flex sm:hidden items-center justify-center mb-1 absolute -top-8 left-0 right-0 z-50 animate-in fade-in slide-in-from-top-2 duration-500"
+          "hidden sm:hidden items-center justify-center mb-1 absolute left-0 right-0 z-50 transition-all duration-500 ease-out",
+          isScrolled ? "flex opacity-100 -top-8" : "opacity-0 top-0 pointer-events-none"
         )}>
            <img 
              src={logo} 
@@ -82,29 +82,29 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
 
         {/* iOS Notification Style Stack Container - Main Balance Card */}
         <div className={cn(
-          "transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] origin-top relative",
+          "transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] origin-top relative",
           isScrolled ? "sm:mb-1 sm:scale-[0.8] sm:-translate-y-4 mb-3 scale-100 translate-y-0" : "mb-3 sm:mb-4 scale-100 translate-y-0"
         )}>
           {/* Bottom Stack Layer (The "Ghost" cards underneath) */}
           <div className={cn(
-            "absolute -bottom-2 inset-x-6 h-12 rounded-[2.5rem] -z-10 transition-all duration-700 border",
+            "absolute -bottom-2 inset-x-6 h-12 rounded-[2.5rem] -z-10 transition-all duration-500 border",
             theme === 'light' ? "bg-white/40 border-white/40" : "bg-white/[0.05] border-white/[0.06]",
             isScrolled ? "sm:opacity-100 sm:translate-y-1 sm:scale-[0.94] opacity-0" : "opacity-0 translate-y-0 scale-100"
           )} />
           <div className={cn(
-            "absolute -bottom-4 inset-x-10 h-12 rounded-[2.5rem] -z-20 transition-all duration-700 border",
+            "absolute -bottom-4 inset-x-10 h-12 rounded-[2.5rem] -z-20 transition-all duration-500 border",
             theme === 'light' ? "bg-white/20 border-white/20" : "bg-white/[0.005] border-white/[0.05]",
             isScrolled ? "sm:opacity-60 sm:translate-y-2 sm:scale-[0.88] opacity-0" : "opacity-0 translate-y-0 scale-100"
           )} />
 
           <div className={cn(
-            "ios-card shadow-2xl group transition-all duration-700 relative overflow-hidden sm:overflow-visible border",
+            "ios-card shadow-2xl group transition-all duration-500 relative overflow-hidden sm:overflow-visible border",
             theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.05] border-white/[0.05]",
             isScrolled ? "sm:py-2 sm:rounded-[1.5rem] sm:h-[70px] sm:flex sm:items-center py-3 h-auto" : "py-3 sm:py-3 h-auto"
           )}>
             {/* Theme-based Edge Border Overlay */}
             <div className={cn(
-              "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-700",
+              "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-500",
               theme === 'light' ? "border-[0.2px] border-black/5" : "border-[0.2px] border-white/10",
               "shadow-[0_0_1px_rgba(255,255,255,0.05)]"
             )} />
@@ -136,12 +136,12 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
             <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-rose-500/5 rounded-full blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
             
             <div className={cn(
-              "relative z-10 w-full px-3 sm:px-4 xs:pl-8 sm:pl-12 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6 transition-all duration-700",
+              "relative z-10 w-full px-3 sm:px-4 xs:pl-8 sm:pl-12 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6 transition-all duration-500",
               isScrolled ? "flex-row items-center justify-between gap-2 p-3 xs:pl-8 sm:p-3" : "p-3 sm:p-4 xs:pl-8 sm:pl-12"
             )}>
               {/* Main Net Profit Section */}
               <div className={cn(
-                "transition-all duration-700",
+                "transition-all duration-500",
                 isScrolled ? "sm:flex-none flex-1" : "flex-1"
               )}>
                 <div className={cn("flex items-center gap-2 mb-1 transition-all duration-500", isScrolled ? "hidden sm:flex sm:opacity-0 sm:h-0 sm:overflow-hidden sm:mb-0 opacity-100 h-auto" : "opacity-100 h-auto")}>
@@ -161,18 +161,18 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
 
                 <div className="flex items-center gap-3">
                   <div className={cn(
-                    "font-black tracking-tighter flex items-baseline gap-1 transition-all duration-700",
+                    "font-black tracking-tighter flex items-baseline gap-1 transition-all duration-500",
                     theme === 'light' ? "text-slate-900" : "text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.03)]",
                     isScrolled ? "text-xl sm:text-2xl" : "text-3xl sm:text-5xl"
                   )}>
                     <span className={cn(
-                      "transition-all duration-700",
+                      "transition-all duration-500",
                       stats.totalProfit >= 0 ? "text-emerald-500" : "text-rose-500",
                       isScrolled ? "text-xl sm:text-lg sm:opacity-60 opacity-60" : "text-xl sm:text-2xl opacity-20"
                     )}>{stats.totalProfit >= 0 ? '+' : ''}</span>
                     {Math.round(stats.totalProfit).toLocaleString()}
                     <span className={cn(
-                      "opacity-20 ml-0.5 transition-all duration-700", 
+                      "opacity-20 ml-0.5 transition-all duration-500", 
                       theme === 'light' ? "text-slate-900" : "text-white",
                       isScrolled ? "text-lg sm:text-sm" : "text-base sm:text-lg"
                     )}>$</span>
@@ -191,7 +191,7 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
                   
                   {/* Visual indicator icon */}
                   <div className={cn(
-                    "flex rounded-2xl items-center justify-center border transition-all duration-700 group-hover:scale-105 backdrop-blur-xl shadow-inner",
+                    "flex rounded-2xl items-center justify-center border transition-all duration-500 group-hover:scale-105 backdrop-blur-xl shadow-inner",
                     stats.totalProfit >= 0 
                       ? (theme === 'light' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600" : "bg-emerald-500/5 border-emerald-500/10 text-emerald-500")
                       : (theme === 'light' ? "bg-rose-500/10 border-rose-500/20 text-rose-600" : "bg-rose-500/5 border-rose-500/10 text-rose-500"),
@@ -204,7 +204,7 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
 
               {/* Metrics Breakdown Grid - Now horizontal on scroll */}
               <div className={cn(
-                "grid transition-all duration-700",
+                "grid transition-all duration-500",
                 isScrolled ? "grid grid-cols-2 gap-2 flex-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:flex-1 sm:max-w-[300px]" : "grid-cols-2 gap-2 sm:gap-3 lg:w-1/3"
               )}>
                 {/* Gross Profit Box */}
@@ -313,8 +313,8 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
         theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.05] border-white/[0.05]"
       )}>
         {/* Background Decorative Glow */}
-        <div className="absolute -top-12 -right-12 sm:-top-24 sm:-right-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/10 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/15 transition-all duration-700" />
-        <div className="absolute -bottom-12 -left-12 sm:-bottom-24 sm:-left-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/5 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/10 transition-all duration-700" />
+        <div className="absolute -top-12 -right-12 sm:-top-24 sm:-right-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/10 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/15 transition-all duration-500" />
+        <div className="absolute -bottom-12 -left-12 sm:-bottom-24 sm:-left-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/5 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/10 transition-all duration-500" />
 
         <div className="w-full h-[280px] sm:h-[550px] relative z-10">
           <TradeChart data={records} initialCapital={initialCapital} />
@@ -344,7 +344,7 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
           theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.05] border-white/[0.05]"
         )}>
           {/* Background Decorative Glow */}
-          <div className="absolute -top-12 -right-12 sm:-top-24 sm:-right-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/10 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/15 transition-all duration-700" />
+          <div className="absolute -top-12 -right-12 sm:-top-24 sm:-right-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/10 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/15 transition-all duration-500" />
           
           <div className="flex items-center justify-between relative z-10 mb-8">
             <p className={cn("text-[9px] font-black uppercase tracking-[0.3em]", theme === 'light' ? "text-slate-900/40" : "text-white/30")}>Weekly Performance</p>
@@ -403,7 +403,7 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
           theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.05] border-white/[0.05]"
         )}>
           {/* Background Decorative Glow */}
-          <div className="absolute -top-12 -right-12 sm:-top-24 sm:-right-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/10 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/15 transition-all duration-700" />
+          <div className="absolute -top-12 -right-12 sm:-top-24 sm:-right-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/10 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/15 transition-all duration-500" />
           
           <div className="flex items-center justify-between relative z-10 mb-8">
             <p className={cn("text-[9px] font-black uppercase tracking-[0.3em]", theme === 'light' ? "text-slate-900/40" : "text-white/30")}>Daily Distribution (Last 15 Days)</p>
@@ -463,7 +463,7 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
         theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.05] border-white/[0.05]"
       )}>
         {/* Background Decorative Glow */}
-        <div className="absolute -top-12 -right-12 sm:-top-24 sm:-right-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/10 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/15 transition-all duration-700" />
+        <div className="absolute -top-12 -right-12 sm:-top-24 sm:-right-24 w-32 sm:w-64 h-32 sm:h-64 bg-primary/10 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/15 transition-all duration-500" />
         
         <div className="flex items-center justify-between relative z-10 mb-8">
           <p className={cn("text-[9px] font-black uppercase tracking-[0.3em]", theme === 'light' ? "text-slate-900/40" : "text-white/30")}>Market Sessions Analysis</p>
@@ -573,7 +573,7 @@ function StatCard({
       {/* Clean Progress Bar at the bottom */}
       <div className={cn("absolute bottom-0 left-0 right-0 h-1", theme === 'light' ? "bg-black/[0.05]" : "bg-white/[0.05]")}>
         <div 
-          className="h-full transition-all duration-700 ease-out"
+          className="h-full transition-all duration-500 ease-out"
           style={{ 
             width: `${Math.min(Math.max(percentage, 0), 100)}%`,
             backgroundColor: color
