@@ -81,6 +81,7 @@ function App() {
   const [isPushing, setIsPushing] = useState(false);
   const [profileImgError, setProfileImgError] = useState(false);
   const isSyncingFromCloudRef = useRef(false);
+  const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -333,11 +334,18 @@ function App() {
       haptic('medium');
       setIsSyncing(true);
       
+      // Check for common configuration issues
+      const hostname = window.location.hostname;
+      if (hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.includes('firebaseapp.com') && !hostname.includes('web.app')) {
+        console.warn(`Current hostname ${hostname} might not be authorized in Firebase Console.`);
+      }
+
       // On Electron or mobile, popup might fail. We'll try popup first.
       try {
         await signInWithPopup(auth, googleProvider);
       } catch (popupError: any) {
-        if (popupError.code === 'auth/popup-blocked') {
+        console.warn('Popup sign-in failed, trying redirect...', popupError);
+        if (popupError.code === 'auth/popup-blocked' || popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
           await signInWithRedirect(auth, googleProvider);
         } else {
           throw popupError;
@@ -349,13 +357,15 @@ function App() {
       let errorMessage = 'Google sign-in failed.';
       
       if (error.code === 'auth/unauthorized-domain') {
-        errorMessage += '\n\nThis domain is not authorized in Firebase. Please make sure "localhost" is added to Authorized Domains.';
+        errorMessage += `\n\nDomain Unauthorized: The domain "${window.location.hostname}" is not authorized in Firebase Console.\n\nPlease add it to Authentication > Settings > Authorized Domains.`;
       } else if (error.code === 'auth/popup-blocked') {
-        errorMessage += '\n\nPopup blocked. Please allow popups for this application.';
+        errorMessage += '\n\nPopup blocked. Please allow popups for this application or try again.';
       } else if (error.code === 'auth/operation-not-allowed') {
         errorMessage += '\n\nGoogle sign-in is not enabled in your Firebase project.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage += '\n\nNetwork error. Please check your internet connection.';
       } else {
-        errorMessage += `\n\nError details: ${error.message || 'Unknown error'}`;
+        errorMessage += `\n\nError: ${error.message || error.code || 'Unknown error'}`;
       }
       
       alert(errorMessage);
@@ -373,23 +383,29 @@ function App() {
 
   const handleSignOut = async () => {
     try {
-      haptic('medium');
-      await signOut(auth);
-      setUser(null);
+      if (confirm('Are you sure you want to sign out? This will reload the application.')) {
+        haptic('medium');
+        await signOut(auth);
+        setUser(null);
+        // Reload to clear all local state and ensure no data leakage between accounts
+        window.location.reload();
+      }
     } catch (error) {
       console.error('Sign out error:', error);
     }
   };
 
   // Sync logic: Manual Cloud Fetch
-  const handleManualSync = async () => {
+  const handleManualSync = async (silentOrEvent: boolean | any = false) => {
+    const silent = typeof silentOrEvent === 'boolean' ? silentOrEvent : false;
+    
     if (!user) {
-      alert('Please sign in to sync with cloud.');
-      return;
+      if (!silent) alert('Please sign in to sync with cloud.');
+      return false;
     }
 
     try {
-      haptic('medium');
+      if (!silent) haptic('medium');
       setIsSyncing(true);
       const docRef = doc(db, 'users', user.uid);
       const snapshot = await getDoc(docRef);
@@ -423,7 +439,7 @@ function App() {
           const oldLength = records.length;
           const newLength = finalRecords.length;
           if (newLength > oldLength) {
-            sendNotification('Sync Complete', `${newLength - oldLength} new records imported from cloud.`);
+            if (!silent) sendNotification('Sync Complete', `${newLength - oldLength} new records imported from cloud.`);
           }
           setRecords(finalRecords);
           localStorage.setItem('trade_records', JSON.stringify(finalRecords));
@@ -474,7 +490,7 @@ function App() {
           isSyncingFromCloudRef.current = false;
         }, 5000);
         
-        sendNotification('Sync Successful', 'Your data is now up to date with the cloud.');
+        if (!silent) sendNotification('Sync Successful', 'Your data is now up to date with the cloud.');
       } else {
         // If doc doesn't exist, push current local data to create it
         const now = new Date().toISOString();
@@ -488,11 +504,13 @@ function App() {
           lastSynced: now
         });
         setLastSyncTimestamp(new Date(now).getTime());
-        sendNotification('Cloud Initialized', 'Your local data has been backed up to the cloud.');
+        if (!silent) sendNotification('Cloud Initialized', 'Your local data has been backed up to the cloud.');
       }
+      return true;
     } catch (error) {
       console.error('Manual sync error:', error);
-      alert('Failed to sync with cloud. Please check your connection.');
+      if (!silent) alert('Failed to sync with cloud. Please check your connection.');
+      return false;
     } finally {
       setIsSyncing(false);
     }
@@ -512,6 +530,8 @@ function App() {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setProfileImgError(false);
+      // Reset initial sync status on any auth change to ensure fresh sync
+      setIsInitialSyncDone(false);
     });
 
     return () => {
@@ -519,10 +539,21 @@ function App() {
     };
   }, []);
 
+  // Auto-sync on login
+  useEffect(() => {
+    if (user && !isInitialSyncDone) {
+      console.log('User signed in, performing initial silent sync...');
+      handleManualSync(true).then((success) => {
+        if (success) setIsInitialSyncDone(true);
+      });
+    }
+  }, [user, isInitialSyncDone]);
+
   // Sync logic: Push to Firestore on local changes
   useEffect(() => {
     // Only push if there's a user and we're NOT currently syncing FROM cloud
-    if (user && !isSyncing && !isSyncingFromCloudRef.current) {
+    // AND we have completed the initial sync (to prevent overwriting cloud with empty local data)
+    if (user && !isSyncing && !isSyncingFromCloudRef.current && isInitialSyncDone) {
       const syncData = async () => {
         try {
           setIsPushing(true);
@@ -1526,8 +1557,8 @@ function App() {
 
                       {/* Genius Stats - Right Column on scroll */}
                       <div className={cn(
-                        "transition-all duration-700",
-                        isScrolled ? "flex-none flex items-center gap-2 sm:gap-6" : "grid grid-cols-3 gap-2 sm:gap-8 w-full max-w-xl px-2 sm:px-4 mt-4 sm:mt-10"
+                        "transition-all duration-700 w-full max-w-xl px-2 sm:px-4",
+                        isScrolled ? "grid grid-cols-3 gap-2 mt-0" : "grid grid-cols-3 gap-2 sm:gap-8 mt-4 sm:mt-10"
                       )}>
                         {/* Health Score */}
                         <div className={cn(
@@ -1554,7 +1585,7 @@ function App() {
                         {/* 30D Projection */}
                         <div className={cn(
                           "flex flex-col items-center justify-start transition-all duration-700",
-                          isScrolled ? "space-y-0" : "space-y-1.5 sm:space-y-3"
+                          isScrolled ? "hidden sm:flex space-y-0" : "space-y-1.5 sm:space-y-3"
                         )}>
                           <div className={cn("flex items-center justify-center", isScrolled ? "h-3" : "h-5")}>
                             <p className={cn(
@@ -2964,10 +2995,20 @@ function App() {
         </div>
       </main>
 
-      {/* iOS 26 Tab Bar */}
+      {/* Bottom Gradient Fade */}
+      <div className={cn(
+        "fixed bottom-0 left-0 right-0 h-32 z-40 pointer-events-none bg-gradient-to-t",
+        theme === 'light' 
+          ? "from-[#f8f9fa] via-[#f8f9fa]/90 to-transparent" 
+          : "from-[#050507] via-[#050507]/90 to-transparent"
+      )} />
+
+      {/* iOS 26 Tab Bar - Glassy Water Effect */}
       <nav className={cn(
-        "fixed bottom-[calc(env(safe-area-inset-bottom)+1.5rem)] left-4 right-4 z-50 backdrop-blur-[40px] border px-2 py-2 flex items-center justify-between shadow-2xl ios-card overflow-visible",
-        theme === 'light' ? "bg-white/60 border-white/60" : "bg-white/[0.05] border-white/5"
+        "fixed bottom-[calc(env(safe-area-inset-bottom)+1.5rem)] left-4 right-4 z-50 backdrop-blur-2xl border px-2 py-2 flex items-center justify-between rounded-[2.5rem] overflow-visible transition-all duration-500",
+        theme === 'light' 
+          ? "bg-gradient-to-b from-white/40 via-white/20 to-white/10 border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)]" 
+          : "bg-gradient-to-b from-white/15 via-white/5 to-white/5 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]"
       )}>
         <button onClick={() => { setActiveTab('home'); haptic('light'); }} className="flex-1 flex justify-center group py-1">
           <div className={cn(
