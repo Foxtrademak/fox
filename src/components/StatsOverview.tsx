@@ -6,6 +6,7 @@ import { cn } from '../lib/utils';
 import { TradeChart } from './TradeChart';
 import { type DailyRecord } from '../types';
 import { haptic } from '../lib/utils';
+import logo from '../assets/app-logo-new.png';
 
 interface StatsOverviewProps {
   stats: Statistics;
@@ -67,6 +68,18 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
             maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
           }} />
 
+        {/* Mobile Scrolled: Logo - Above the Card */}
+        <div className={cn(
+          "hidden",
+          isScrolled && "flex sm:hidden items-center justify-center mb-1 absolute -top-8 left-0 right-0 z-50 animate-in fade-in slide-in-from-top-2 duration-500"
+        )}>
+           <img 
+             src={logo} 
+             alt="App Logo" 
+             className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] opacity-80" 
+           />
+        </div>
+
         {/* iOS Notification Style Stack Container - Main Balance Card */}
         <div className={cn(
           "transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] origin-top relative",
@@ -124,30 +137,12 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
             
             <div className={cn(
               "relative z-10 w-full px-3 sm:px-4 xs:pl-8 sm:pl-12 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6 transition-all duration-700",
-              isScrolled ? "flex-col items-center justify-center p-2 sm:flex-row sm:justify-between sm:gap-2 sm:p-3 xs:pl-8" : "p-3 sm:p-4 xs:pl-8 sm:pl-12"
+              isScrolled ? "flex-row items-center justify-between gap-2 p-3 xs:pl-8 sm:p-3" : "p-3 sm:p-4 xs:pl-8 sm:pl-12"
             )}>
-              {/* MOBILE SCROLLED ONLY: Market Names & Large Balance */}
-              {isScrolled && (
-                <div className="flex flex-col items-center justify-center sm:hidden w-full gap-0.5 animate-in fade-in zoom-in duration-300">
-                  <span className={cn(
-                    "text-[9px] uppercase tracking-[0.2em] font-bold opacity-50",
-                    theme === 'light' ? "text-slate-900" : "text-white"
-                  )}>
-                    {sessionStats.map(s => s.label).join(' • ')}
-                  </span>
-                  <span className={cn(
-                    "text-4xl font-black tracking-tighter",
-                    stats.totalProfit >= 0 ? "text-emerald-500" : "text-rose-500"
-                  )}>
-                    {Math.round(stats.totalProfit).toLocaleString()}$
-                  </span>
-                </div>
-              )}
-
-              {/* Main Net Profit Section - Hidden on Mobile Scroll */}
+              {/* Main Net Profit Section */}
               <div className={cn(
                 "transition-all duration-700",
-                isScrolled ? "hidden sm:block sm:flex-none flex-1" : "flex-1"
+                isScrolled ? "sm:flex-none flex-1" : "flex-1"
               )}>
                 <div className={cn("flex items-center gap-2 mb-1 transition-all duration-500", isScrolled ? "hidden sm:flex sm:opacity-0 sm:h-0 sm:overflow-hidden sm:mb-0 opacity-100 h-auto" : "opacity-100 h-auto")}>
                   <div className={cn(
@@ -168,7 +163,7 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
                   <div className={cn(
                     "font-black tracking-tighter flex items-baseline gap-1 transition-all duration-700",
                     theme === 'light' ? "text-slate-900" : "text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.03)]",
-                    isScrolled ? "text-3xl sm:text-2xl" : "text-3xl sm:text-5xl"
+                    isScrolled ? "text-xl sm:text-2xl" : "text-3xl sm:text-5xl"
                   )}>
                     <span className={cn(
                       "transition-all duration-700",
@@ -207,53 +202,32 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
                 </div>
               </div>
 
-              {/* Mobile Scrolled Health Score */}
-              <div className={cn(
-                "hidden transition-all duration-500",
-                isScrolled && "flex sm:hidden flex-col items-end"
-              )}>
-                <p className={cn(
-                  "hidden text-[8px] font-black uppercase tracking-widest opacity-60 mb-0.5",
-                  theme === 'light' ? "text-slate-900" : "text-white"
-                )}>Health Score</p>
-                <div className="flex items-center gap-1.5">
-                   <div className={cn(
-                     "w-1.5 h-1.5 rounded-full",
-                     stats.winRate >= 50 ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"
-                   )} />
-                   <span className={cn(
-                     "text-xl font-black tracking-tighter",
-                     stats.winRate >= 50 ? "text-emerald-500" : "text-rose-500"
-                   )}>{stats.winRate.toFixed(0)}%</span>
-                </div>
-              </div>
-
               {/* Metrics Breakdown Grid - Now horizontal on scroll */}
               <div className={cn(
                 "grid transition-all duration-700",
-                isScrolled ? "hidden sm:grid sm:grid-cols-2 sm:gap-2 sm:flex-1 sm:max-w-[300px]" : "grid-cols-2 gap-2 sm:gap-3 lg:w-1/3"
+                isScrolled ? "grid grid-cols-2 gap-2 flex-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:flex-1 sm:max-w-[300px]" : "grid-cols-2 gap-2 sm:gap-3 lg:w-1/3"
               )}>
                 {/* Gross Profit Box */}
                 <div className={cn(
                   "relative p-2 rounded-2xl border overflow-hidden group/box transition-all duration-300 backdrop-blur-md",
                   theme === 'light' ? "bg-white/30 border-white/50 hover:bg-white/50" : "bg-white/[0.05] border-white/[0.05] hover:bg-white/[0.04]",
-                  isScrolled ? "sm:p-1 sm:rounded-lg sm:border-none sm:bg-transparent sm:backdrop-blur-none p-2 rounded-2xl" : "p-2 rounded-2xl"
+                  isScrolled ? "p-1 rounded-lg border-none bg-transparent backdrop-blur-none sm:p-1 sm:rounded-lg sm:border-none sm:bg-transparent sm:backdrop-blur-none" : "p-2 rounded-2xl"
                 )}>
                   <div className={cn("absolute top-0 left-0 w-0.5 h-full bg-emerald-500/30", isScrolled && "hidden sm:hidden")} />
                   <p className={cn(
                     "font-black uppercase tracking-widest mb-0.5 transition-all duration-500", 
                     theme === 'light' ? "text-slate-900/30" : "text-white/20",
-                    isScrolled ? "sm:text-[6px] text-[7px]" : "text-[7px]"
+                    isScrolled ? "text-[6px] sm:text-[6px]" : "text-[7px]"
                   )}>Revenue</p>
                   <div className="flex items-baseline gap-1">
                     <span className={cn(
                       "font-black tracking-tighter transition-all duration-500", 
                       theme === 'light' ? "text-slate-900" : "text-white",
-                      isScrolled ? "sm:text-base text-lg" : "text-lg"
+                      isScrolled ? "text-sm sm:text-base" : "text-lg"
                     )}>
                       {Math.round(stats.grossProfit).toLocaleString()}
                     </span>
-                    <span className={cn("font-bold text-emerald-500/40 transition-all duration-500", isScrolled ? "sm:text-[7px] text-[8px]" : "text-[8px]")}>$</span>
+                    <span className={cn("font-bold text-emerald-500/40 transition-all duration-500", isScrolled ? "text-[7px] sm:text-[7px]" : "text-[8px]")}>$</span>
                   </div>
                 </div>
 
@@ -261,23 +235,23 @@ export function StatsOverview({ stats, periodStats, records, initialCapital, ses
                 <div className={cn(
                   "relative p-2 rounded-2xl border overflow-hidden group/box transition-all duration-300 backdrop-blur-md",
                   theme === 'light' ? "bg-white/30 border-white/50 hover:bg-white/50" : "bg-white/[0.05] border-white/[0.05] hover:bg-white/[0.04]",
-                  isScrolled ? "sm:p-1 sm:rounded-lg sm:border-none sm:bg-transparent sm:backdrop-blur-none p-2 rounded-2xl" : "p-2 rounded-2xl"
+                  isScrolled ? "p-1 rounded-lg border-none bg-transparent backdrop-blur-none sm:p-1 sm:rounded-lg sm:border-none sm:bg-transparent sm:backdrop-blur-none" : "p-2 rounded-2xl"
                 )}>
                   <div className={cn("absolute top-0 left-0 w-0.5 h-full bg-rose-500/30", isScrolled && "hidden sm:hidden")} />
                   <p className={cn(
                     "font-black uppercase tracking-widest mb-0.5 transition-all duration-500", 
                     theme === 'light' ? "text-slate-900/30" : "text-white/20",
-                    isScrolled ? "sm:text-[6px] text-[7px]" : "text-[7px]"
+                    isScrolled ? "text-[6px] sm:text-[6px]" : "text-[7px]"
                   )}>Drawdown</p>
                   <div className="flex items-baseline gap-1">
                     <span className={cn(
                       "font-black tracking-tighter transition-all duration-500", 
                       theme === 'light' ? "text-slate-900" : "text-white",
-                      isScrolled ? "sm:text-base text-lg" : "text-lg"
+                      isScrolled ? "text-sm sm:text-base" : "text-lg"
                     )}>
                       {Math.round(stats.grossLoss).toLocaleString()}
                     </span>
-                    <span className={cn("font-bold text-rose-500/40 transition-all duration-500", isScrolled ? "sm:text-[7px] text-[8px]" : "text-[8px]")}>$</span>
+                    <span className={cn("font-bold text-rose-500/40 transition-all duration-500", isScrolled ? "text-[7px] sm:text-[7px]" : "text-[8px]")}>$</span>
                   </div>
                 </div>
               </div>

@@ -1347,6 +1347,18 @@ function App() {
                 "sticky top-0 z-[100] transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
                 isScrolled ? "pt-2 pb-0" : "pt-0 pb-2"
               )}>
+              {/* Mobile Scrolled: Logo - Above the Card */}
+              <div className={cn(
+                "hidden",
+                isScrolled && "flex sm:hidden items-center justify-center mb-1 absolute -top-8 left-0 right-0 z-50 animate-in fade-in slide-in-from-top-2 duration-500"
+              )}>
+                 <img 
+                   src={logo} 
+                   alt="App Logo" 
+                   className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] opacity-80" 
+                 />
+              </div>
+
               {/* Transparent Mask - Provides smooth blur transition behind sticky elements */}
               <div className={cn(
                   "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter] pointer-events-none",
@@ -1365,7 +1377,7 @@ function App() {
                   theme === 'light' 
                     ? "bg-primary/5 shadow-none" 
                     : "bg-transparent shadow-none",
-                  isScrolled ? "pt-1.5 pb-1.5 h-[75px] sm:h-[110px]" : "pt-6 pb-10 h-auto shadow-2xl"
+                  isScrolled ? "pt-1.5 pb-1.5 h-[85px] sm:h-[110px]" : "pt-6 pb-10 h-auto shadow-2xl"
                 )}>
                   {/* Glass Edge Highlight */}
                   <div 
@@ -1443,35 +1455,48 @@ function App() {
                       isScrolled ? "xs:pl-0 px-2 sm:px-6" : "xs:pl-8 sm:pl-0"
                     )}>
                       <div className={cn(
-                        "relative w-full transition-all duration-700",
-                        isScrolled ? "flex items-center justify-between px-2" : "flex flex-col items-center justify-center gap-2 sm:gap-4"
-                      )}>
+                      "relative w-full transition-all duration-700",
+                      isScrolled ? "flex flex-col sm:flex-row items-center justify-center sm:justify-between px-2" : "flex flex-col items-center justify-center gap-2 sm:gap-4"
+                    )}>
                         
                       {/* Market Sessions - Left Column on scroll */}
                       <div className={cn(
                         "transition-all duration-700",
-                        isScrolled ? "flex-none order-first opacity-100" : "w-full mb-2 opacity-100 h-auto"
+                        isScrolled ? "flex-none order-first opacity-100 w-full flex flex-col items-center justify-center" : "w-full mb-2 opacity-100 h-auto"
                       )}>
-                        {/* Mobile: Grid Layout */}
+                        {/* Mobile Scrolled: Text Only - The "Stock Names" user requested */}
+                        <div className={cn(
+                          "hidden",
+                          isScrolled && "flex sm:hidden items-center gap-2 mb-1 animate-in fade-in zoom-in duration-300"
+                        )}>
+                           <span className={cn(
+                              "text-[9px] uppercase tracking-[0.2em] font-bold opacity-50",
+                              theme === 'light' ? "text-slate-900" : "text-white"
+                            )}>
+                              {sessions.map(s => s.name).join(' • ')}
+                            </span>
+                        </div>
+
+                        {/* Mobile: Grid Layout - Hidden on scroll now */}
                         <div className={cn(
                           "flex sm:hidden px-1 transition-all duration-500",
-                          isScrolled ? "flex-col items-start gap-0" : "grid grid-cols-2 gap-1.5 w-full"
+                          isScrolled ? "hidden" : "grid grid-cols-2 gap-1.5 w-full"
                         )}>
                           {sessions.map((session) => (
                             <div key={session.name} className={cn(
                               "transition-all duration-300 flex items-center gap-1",
                               !session.active && "opacity-20",
-                              isScrolled ? "p-0 h-3" : "p-1.5 rounded-lg border bg-white/[0.05] border-white/[0.05]"
+                              "p-1.5 rounded-lg border bg-white/[0.05] border-white/[0.05]"
                             )}>
                               <div className={cn(
                                 "rounded-full",
                                 session.active ? "bg-primary animate-pulse" : "bg-white/20",
-                                isScrolled ? "w-0.5 h-0.5" : "w-1 h-1"
+                                "w-1 h-1"
                               )} />
                               <span className={cn(
                                 "font-black uppercase tracking-tight",
                                 session.active ? "text-primary" : theme === 'light' ? "text-slate-900/30" : "text-white/30",
-                                isScrolled ? "text-[6px]" : "text-[8px]"
+                                "text-[8px]"
                               )}>
                                 {session.name}
                               </span>
@@ -1508,7 +1533,7 @@ function App() {
                       {/* Balance - Center Column on scroll */}
                       <div className={cn(
                         "flex flex-col items-center relative py-1 transition-all duration-700",
-                        isScrolled ? "flex-1 flex justify-center scale-90" : "gap-1 sm:gap-2"
+                        isScrolled ? "flex-1 flex justify-center scale-100 sm:scale-90" : "gap-1 sm:gap-2"
                       )}>
                         <div className="flex items-center gap-1.5 sm:gap-2">
                           <div className={cn(
@@ -1522,13 +1547,13 @@ function App() {
                           <h2 className={cn(
                             "font-black tracking-tighter flex items-baseline transition-all duration-700", 
                             theme === 'light' ? "text-slate-900" : "bg-gradient-to-b from-white via-white/80 to-white/30 bg-clip-text text-transparent drop-shadow-[0_4px_10px_rgba(255,255,255,0.2)]",
-                            isScrolled ? "text-3xl xs:text-4xl sm:text-6xl" : "text-3xl xs:text-5xl sm:text-8xl"
+                            isScrolled ? "text-4xl sm:text-6xl" : "text-3xl xs:text-5xl sm:text-8xl"
                           )}>
                             {Math.floor(currentCapital).toLocaleString()}
                             <span className={cn(
                               "flex items-baseline relative group/balance-dec transition-all duration-700",
                               theme === 'light' ? "text-primary" : "bg-gradient-to-b from-white via-white/80 to-white/30 bg-clip-text text-transparent drop-shadow-[0_2px_5px_rgba(255,255,255,0.15)]",
-                              isScrolled ? "text-sm xs:text-base sm:text-xl" : "text-lg xs:text-xl sm:text-4xl"
+                              isScrolled ? "text-xl sm:text-xl" : "text-lg xs:text-xl sm:text-4xl"
                             )}>
                                 <span className="mx-0.5">.</span>
                                 <span className="ml-0.5 tracking-tight">
@@ -1544,7 +1569,7 @@ function App() {
                                }}
                                className={cn(
                                  "ml-3 sm:ml-6 flex items-center self-center active:scale-90 transition-all duration-700",
-                                 isScrolled ? "opacity-0 scale-0 pointer-events-none" : "opacity-100 scale-100"
+                                 isScrolled ? "hidden opacity-0 scale-0 pointer-events-none" : "opacity-100 scale-100"
                                )}
                              >
                               <div className="relative flex items-center justify-center p-1.5 sm:p-2.5 rounded-xl sm:rounded-2xl bg-red-500/10 border border-red-500/20 shadow-lg hover:bg-red-500/20 transition-colors">
@@ -1558,7 +1583,7 @@ function App() {
                       {/* Genius Stats - Right Column on scroll */}
                       <div className={cn(
                         "transition-all duration-700 w-full max-w-xl px-2 sm:px-4",
-                        isScrolled ? "grid grid-cols-3 gap-2 mt-0" : "grid grid-cols-3 gap-2 sm:gap-8 mt-4 sm:mt-10"
+                        isScrolled ? "hidden sm:grid sm:grid-cols-3 sm:gap-2 sm:mt-0" : "grid grid-cols-3 gap-2 sm:gap-8 mt-4 sm:mt-10"
                       )}>
                         {/* Health Score */}
                         <div className={cn(
@@ -1964,6 +1989,18 @@ function App() {
                   maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
                 }} />
 
+              {/* Mobile Scrolled: Logo - Above the Card */}
+              <div className={cn(
+                "hidden",
+                isScrolled && "flex sm:hidden items-center justify-center mb-1 absolute -top-8 left-0 right-0 z-50 animate-in fade-in slide-in-from-top-2 duration-500"
+              )}>
+                 <img 
+                   src={logo} 
+                   alt="App Logo" 
+                   className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] opacity-80" 
+                 />
+              </div>
+
               <div className={cn(
                 "flex flex-col items-center justify-center transition-all duration-700",
                 isScrolled ? "opacity-0 h-0 overflow-hidden mb-0" : "opacity-100 h-auto mb-6"
@@ -2268,6 +2305,18 @@ function App() {
                   WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
                   maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
                 }} />
+
+              {/* Mobile Scrolled: Logo - Above the Card */}
+              <div className={cn(
+                "hidden",
+                isScrolled && "flex sm:hidden items-center justify-center mb-1 absolute -top-8 left-0 right-0 z-50 animate-in fade-in slide-in-from-top-2 duration-500"
+              )}>
+                 <img 
+                   src={logo} 
+                   alt="App Logo" 
+                   className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] opacity-80" 
+                 />
+              </div>
 
               <div className={cn(
                 "flex flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]",
