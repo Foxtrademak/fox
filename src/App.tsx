@@ -1377,7 +1377,7 @@ function App() {
                   theme === 'light' 
                     ? "bg-primary/5 shadow-none" 
                     : "bg-transparent shadow-none",
-                  isScrolled ? "pt-1.5 pb-1.5 h-[85px] sm:h-[110px]" : "pt-6 pb-10 h-auto shadow-2xl"
+                  isScrolled ? "pt-1.5 pb-1.5 h-[85px] sm:h-[130px]" : "pt-6 pb-10 h-auto shadow-2xl"
                 )}>
                   {/* Glass Edge Highlight */}
                   <div 
@@ -1456,13 +1456,13 @@ function App() {
                     )}>
                       <div className={cn(
                       "relative w-full transition-all duration-700",
-                      isScrolled ? "flex flex-col sm:flex-row items-center justify-center sm:justify-between px-2" : "flex flex-col items-center justify-center gap-2 sm:gap-4"
+                      isScrolled ? "flex flex-col sm:flex-row items-center justify-center sm:justify-between px-2 sm:gap-8" : "flex flex-col items-center justify-center gap-2 sm:gap-4"
                     )}>
                         
                       {/* Market Sessions - Left Column on scroll */}
                       <div className={cn(
                         "transition-all duration-700",
-                        isScrolled ? "flex-none order-first opacity-100 w-full flex flex-col items-center justify-center" : "w-full mb-2 opacity-100 h-auto"
+                        isScrolled ? "flex-none order-first opacity-100 w-full sm:w-auto flex flex-col items-center justify-center" : "w-full mb-2 opacity-100 h-auto"
                       )}>
                         {/* Mobile Scrolled: Text Only - The "Stock Names" user requested */}
                         <div className={cn(
@@ -1547,7 +1547,7 @@ function App() {
                           <h2 className={cn(
                             "font-black tracking-tighter flex items-baseline transition-all duration-700", 
                             theme === 'light' ? "text-slate-900" : "bg-gradient-to-b from-white via-white/80 to-white/30 bg-clip-text text-transparent drop-shadow-[0_4px_10px_rgba(255,255,255,0.2)]",
-                            isScrolled ? "text-4xl sm:text-6xl" : "text-3xl xs:text-5xl sm:text-8xl"
+                            isScrolled ? "text-4xl sm:text-7xl" : "text-3xl xs:text-5xl sm:text-8xl"
                           )}>
                             {Math.floor(currentCapital).toLocaleString()}
                             <span className={cn(
@@ -1582,53 +1582,53 @@ function App() {
 
                       {/* Genius Stats - Right Column on scroll */}
                       <div className={cn(
-                        "transition-all duration-700 w-full max-w-xl px-2 sm:px-4",
-                        isScrolled ? "hidden sm:grid sm:grid-cols-3 sm:gap-2 sm:mt-0" : "grid grid-cols-3 gap-2 sm:gap-8 mt-4 sm:mt-10"
+                        "transition-all duration-700 w-full px-2 sm:px-4",
+                        isScrolled ? "hidden sm:grid sm:grid-cols-3 sm:gap-x-10 sm:gap-y-0 sm:mt-0 sm:max-w-md sm:justify-end" : "grid grid-cols-3 gap-2 sm:gap-8 mt-4 sm:mt-10 max-w-xl"
                       )}>
                         {/* Health Score */}
                         <div className={cn(
-                          "flex flex-col items-center justify-start transition-all duration-700",
-                          isScrolled ? "space-y-0" : "space-y-1.5 sm:space-y-3"
+                          "flex flex-col transition-all duration-700",
+                          isScrolled ? "items-center space-y-0.5" : "items-center space-y-1.5 sm:space-y-3"
                         )}>
                           <div className={cn("flex items-center justify-center", isScrolled ? "h-3" : "h-5")}>
                             <p className={cn(
                               "font-black uppercase tracking-[0.2em] leading-none transition-all duration-500", 
                               theme === 'light' ? "text-slate-900/20" : "text-white/20",
-                              isScrolled ? "text-[6px] sm:text-[8px]" : "text-[8px] sm:text-[10px]"
+                              isScrolled ? "text-[6px] sm:text-[9px]" : "text-[8px] sm:text-[10px]"
                             )}>Health Score</p>
                           </div>
                           <div className={cn(
                             "flex items-center gap-1 font-black tracking-tight transition-all duration-500",
                             geniusMetrics.healthScore > 60 ? "text-emerald-500" : "text-rose-500",
-                            isScrolled ? "text-[7px] sm:text-[10px]" : "px-1.5 sm:px-4 py-1 sm:py-2 rounded-lg sm:rounded-xl bg-primary/10 text-[9px] sm:text-xs"
+                            isScrolled ? "text-[7px] sm:text-base" : "px-1.5 sm:px-4 py-1 sm:py-2 rounded-lg sm:rounded-xl bg-primary/10 text-[9px] sm:text-xs"
                           )}>
-                            <Sparkles className={cn("transition-all duration-500", isScrolled ? "w-1 h-1 sm:w-2 sm:h-2" : "w-2 sm:w-3 h-2 sm:h-3")} />
+                            <Sparkles className={cn("transition-all duration-500", isScrolled ? "w-1 h-1 sm:w-3 sm:h-3" : "w-2 sm:w-3 h-2 sm:h-3")} />
                             {geniusMetrics.healthScore}%
                           </div>
                         </div>
                         
                         {/* 30D Projection */}
                         <div className={cn(
-                          "flex flex-col items-center justify-start transition-all duration-700",
-                          isScrolled ? "hidden sm:flex space-y-0" : "space-y-1.5 sm:space-y-3"
+                          "flex flex-col transition-all duration-700",
+                          isScrolled ? "hidden sm:flex items-center space-y-0.5" : "items-center space-y-1.5 sm:space-y-3"
                         )}>
                           <div className={cn("flex items-center justify-center", isScrolled ? "h-3" : "h-5")}>
                             <p className={cn(
                               "font-black uppercase tracking-[0.2em] leading-none transition-all duration-500 pt-[2px]", 
                               theme === 'light' ? "text-slate-900/20" : "text-white/20",
-                              isScrolled ? "text-[6px] sm:text-[8px]" : "text-[8px] sm:text-[10px]"
+                              isScrolled ? "text-[6px] sm:text-[9px]" : "text-[8px] sm:text-[10px]"
                             )}>Projected 30D</p>
                           </div>
                           <div className={cn("flex flex-col items-center justify-center", isScrolled ? "" : "h-8 sm:h-10")}>
                             <p className={cn(
                               "font-black tracking-tighter transition-all duration-500", 
                               theme === 'light' ? "text-slate-900/90" : "text-white/90",
-                              isScrolled ? "text-[8px] sm:text-[12px]" : "text-xs sm:text-xl"
+                              isScrolled ? "text-[8px] sm:text-base" : "text-xs sm:text-xl"
                             )}>
                               <span className={cn(
                                 "font-light mr-0.5 transition-all duration-500", 
                                 theme === 'light' ? "text-slate-900/30" : "text-white/30",
-                                isScrolled ? "text-[5px] sm:text-[7px]" : "text-[9px] sm:text-xs"
+                                isScrolled ? "text-[5px] sm:text-[10px]" : "text-[9px] sm:text-xs"
                               )}>$</span>
                               {Math.round(geniusMetrics.projected30D).toLocaleString()}
                             </p>
@@ -1637,25 +1637,25 @@ function App() {
                         
                         {/* Performance */}
                         <div className={cn(
-                          "flex flex-col items-center justify-start transition-all duration-700",
-                          isScrolled ? "space-y-0" : "space-y-1.5 sm:space-y-3"
+                          "flex flex-col transition-all duration-700",
+                          isScrolled ? "items-center space-y-0.5" : "items-center space-y-1.5 sm:space-y-3"
                         )}>
                           <div className={cn("flex items-center justify-center", isScrolled ? "h-3" : "h-5")}>
                             <p className={cn(
                               "font-black uppercase tracking-[0.2em] leading-none transition-all duration-500", 
                               theme === 'light' ? "text-slate-900/20" : "text-white/20",
-                              isScrolled ? "text-[6px] sm:text-[8px]" : "text-[8px] sm:text-[10px]"
+                              isScrolled ? "text-[6px] sm:text-[9px]" : "text-[8px] sm:text-[10px]"
                             )}>Performance</p>
                           </div>
                           <div className={cn(
                             "flex items-center gap-1 font-black tracking-tight transition-all duration-500",
                             stats.totalProfit >= 0 ? "text-emerald-500" : "text-rose-500",
-                            isScrolled ? "text-[7px] sm:text-[10px]" : "px-1.5 sm:px-4 py-1 sm:py-2 rounded-lg sm:rounded-xl bg-primary/10 text-[9px] sm:text-xs"
+                            isScrolled ? "text-[7px] sm:text-base" : "px-1.5 sm:px-4 py-1 sm:py-2 rounded-lg sm:rounded-xl bg-primary/10 text-[9px] sm:text-xs"
                           )}>
                             {stats.totalProfit >= 0 ? (
-                              <TrendingUp className={cn("transition-all duration-500", isScrolled ? "w-1 h-1 sm:w-2 sm:h-2" : "w-2 sm:w-3 h-2 sm:h-3")} />
+                              <TrendingUp className={cn("transition-all duration-500", isScrolled ? "w-1 h-1 sm:w-3 sm:h-3" : "w-2 sm:w-3 h-2 sm:h-3")} />
                             ) : (
-                              <TrendingDown className={cn("transition-all duration-500", isScrolled ? "w-1 h-1 sm:w-2 sm:h-2" : "w-2 sm:w-3 h-2 sm:h-3")} />
+                              <TrendingDown className={cn("transition-all duration-500", isScrolled ? "w-1 h-1 sm:w-3 sm:h-3" : "w-2 sm:w-3 h-2 sm:h-3")} />
                             )}
                             {Math.abs((stats.totalProfit / initialCapital) * 100).toFixed(1)}%
                           </div>
