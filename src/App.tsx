@@ -1293,12 +1293,14 @@ function App() {
       haptic('heavy');
       setIsSharing(true);
       
-      // Give a small delay for any layout updates
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Give more time for assets to load and styles to settle
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const dataUrl = await toPng(shareCardRef.current, {
         quality: 1.0,
-        pixelRatio: 2, // Higher resolution for sharing
+        pixelRatio: 3, // Higher resolution for better quality
+        cacheBust: true, // Force reload images
+        skipFonts: false,
       });
       
       const link = document.createElement('a');
