@@ -36,27 +36,15 @@ export const ShareCard: React.FC<ShareCardProps> = ({ cardRef, data }) => {
         }}
       >
         {/* Background Elements */}
-        <div className={cn(
-          "absolute top-[-5%] left-[-5%] w-[60%] h-[40%] blur-[180px] rounded-full",
-          "bg-primary/20"
-        )} />
-        <div className={cn(
-          "absolute bottom-[-5%] right-[-5%] w-[60%] h-[40%] blur-[180px] rounded-full",
-          "bg-primary/10"
-        )} />
         
         {/* Top Section: Logo & Brand */}
         <div className="z-10 flex flex-col items-center space-y-6 mt-16">
           <div className="relative">
             <div className={cn(
-              "absolute inset-0 blur-3xl rounded-full scale-150",
-              "bg-primary/30"
-            )} />
-            <div className={cn(
-              "w-40 h-40 backdrop-blur-3xl rounded-[2.5rem] border flex items-center justify-center p-5 relative z-10 shadow-2xl",
+              "w-40 h-40 rounded-[2.5rem] border flex items-center justify-center p-5 relative z-10 shadow-2xl",
               "bg-white/5 border-white/10"
             )}>
-              <img src={logo} alt="Fox Trade" className="w-full h-full object-contain filter drop-shadow-[0_0_20px_rgba(var(--primary-rgb),0.5)]" />
+              <img src={logo} alt="Fox Trade" className="w-full h-full object-contain" />
             </div>
           </div>
           <div className="flex flex-col items-center space-y-3">
@@ -71,7 +59,7 @@ export const ShareCard: React.FC<ShareCardProps> = ({ cardRef, data }) => {
         {/* Main Content: Profit/Loss */}
         <div className="z-10 flex flex-col items-center space-y-6 w-full">
           <div className={cn(
-            "px-6 py-2 border rounded-full backdrop-blur-3xl",
+            "px-6 py-2 border rounded-full",
             "bg-white/[0.06] border-white/[0.05]"
           )}>
             <span className={cn(
@@ -81,10 +69,6 @@ export const ShareCard: React.FC<ShareCardProps> = ({ cardRef, data }) => {
           </div>
 
           <div className="relative group">
-            <div className={cn(
-              "absolute inset-0 blur-[100px] opacity-30 scale-150",
-              isPositive ? "bg-green-500" : "bg-red-500"
-            )} />
             <div className="relative flex flex-col items-center space-y-2">
               <span className={cn(
                 "text-[120px] font-black tracking-tighter leading-none",
@@ -100,7 +84,7 @@ export const ShareCard: React.FC<ShareCardProps> = ({ cardRef, data }) => {
           </div>
 
           <div className={cn(
-            "flex items-center gap-5 px-8 py-4 rounded-[2.5rem] border-2 backdrop-blur-3xl transition-all duration-500",
+            "flex items-center gap-5 px-8 py-4 rounded-[2.5rem] border-2 transition-all duration-500",
             isPositive 
               ? "bg-green-500/10 border-green-500/20 text-green-500"
               : "bg-red-500/10 border-red-500/20 text-red-500"
@@ -115,7 +99,7 @@ export const ShareCard: React.FC<ShareCardProps> = ({ cardRef, data }) => {
         {/* Stats Grid */}
         <div className="z-10 grid grid-cols-2 gap-6 w-full px-8">
           <div className={cn(
-            "ios-card overflow-visible border rounded-[2.5rem] p-8 flex flex-col items-center space-y-3 backdrop-blur-xl",
+            "ios-card overflow-visible border rounded-[2.5rem] p-8 flex flex-col items-center space-y-3",
             "bg-white/[0.05] border-white/[0.05]"
           )}>
             <div className="p-4 bg-primary/10 rounded-2xl">
@@ -134,7 +118,7 @@ export const ShareCard: React.FC<ShareCardProps> = ({ cardRef, data }) => {
           </div>
 
           <div className={cn(
-            "border rounded-[2.5rem] p-8 flex flex-col items-center space-y-3 backdrop-blur-xl",
+            "border rounded-[2.5rem] p-8 flex flex-col items-center space-y-3",
             "bg-white/[0.05] border-white/[0.05]"
           )}>
             <div className="p-4 bg-amber-500/10 rounded-2xl">
@@ -175,7 +159,6 @@ export const ShareCard: React.FC<ShareCardProps> = ({ cardRef, data }) => {
             )}>Professional Trading Companion</p>
             <div className="flex items-center gap-3">
               <div className="h-[2px] w-12 bg-gradient-to-r from-transparent to-primary/30" />
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_15px_rgba(var(--primary-rgb),1)]" />
               <div className="h-[2px] w-12 bg-gradient-to-l from-transparent to-primary/30" />
             </div>
           </div>

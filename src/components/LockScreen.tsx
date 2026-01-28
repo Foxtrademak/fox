@@ -97,7 +97,7 @@ export function LockScreen({ onUnlock, theme = 'dark' }: LockScreenProps) {
   }, [handleNumberClick, handleDelete]);
 
   return (
-    <div className="absolute inset-0 z-[100] backdrop-blur-[15px] flex flex-col items-center justify-center animate-in fade-in duration-700 overflow-hidden bg-white/[0.05]">
+    <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center animate-in fade-in duration-700 overflow-hidden bg-white/[0.05]">
       {/* High Quality Background Design - Uses App Background via Backdrop Blur */}
       <div className="absolute inset-0 pointer-events-none select-none z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-black/20" />
@@ -108,11 +108,10 @@ export function LockScreen({ onUnlock, theme = 'dark' }: LockScreenProps) {
       <div className="relative z-10 w-full flex flex-col items-center">
         <div className="flex flex-col items-center mb-12">
           <div className="w-28 h-28 relative group">
-            <div className="absolute inset-0 rounded-full blur-3xl transition-colors duration-500 bg-primary/5 group-hover:bg-primary/10" />
             <img 
               src={logo} 
               alt="Logo" 
-              className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_25px_rgba(255,215,0,0.15)]" 
+              className="w-full h-full object-contain relative z-10" 
             />
           </div>
           <div className="text-center space-y-1">
@@ -134,7 +133,7 @@ export function LockScreen({ onUnlock, theme = 'dark' }: LockScreenProps) {
               className={cn(
                 "w-4 h-4 rounded-full border-2 transition-all duration-300",
                 i < passcode.length 
-                  ? (error ? "bg-red-500 border-red-500 scale-125 shadow-[0_0_15px_rgba(239,68,68,0.5)]" : "bg-primary border-primary scale-125 shadow-[0_0_15px_rgba(212,175,55,0.5)]")
+                  ? (error ? "bg-red-500 border-red-500 scale-125" : "bg-primary border-primary scale-125")
                   : "border-white/10"
               )}
             />
@@ -157,7 +156,7 @@ export function LockScreen({ onUnlock, theme = 'dark' }: LockScreenProps) {
             <button
               key={item.num}
               onClick={() => { handleNumberClick(item.num); haptic('light'); }}
-              className="w-[75px] h-[75px] sm:w-[85px] sm:h-[85px] rounded-full bg-white/10 backdrop-blur-[10px] border border-white/20 flex flex-col items-center justify-center transition-all duration-200 active:bg-white/30 active:scale-95 group"
+              className="w-[75px] h-[75px] sm:w-[85px] sm:h-[85px] rounded-full bg-white/10 border border-white/20 flex flex-col items-center justify-center transition-all duration-200 active:bg-white/30 active:scale-95 group"
             >
               <span className="text-3xl sm:text-4xl font-normal text-white mb-0.5 leading-none">{item.num}</span>
               {item.letters && (
@@ -168,7 +167,7 @@ export function LockScreen({ onUnlock, theme = 'dark' }: LockScreenProps) {
           <div className="w-[75px] h-[75px] sm:w-[85px] sm:h-[85px]" />
           <button
             onClick={() => { handleNumberClick('0'); haptic('light'); }}
-            className="w-[75px] h-[75px] sm:w-[85px] sm:h-[85px] rounded-full bg-white/10 backdrop-blur-[10px] border border-white/20 flex flex-col items-center justify-center transition-all duration-200 active:bg-white/30 active:scale-95 group"
+            className="w-[75px] h-[75px] sm:w-[85px] sm:h-[85px] rounded-full bg-white/10 border border-white/20 flex flex-col items-center justify-center transition-all duration-200 active:bg-white/30 active:scale-95 group"
           >
             <span className="text-3xl sm:text-4xl font-normal text-white mb-0.5 leading-none">0</span>
           </button>

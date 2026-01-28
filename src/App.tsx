@@ -8,7 +8,7 @@ import { toPng } from 'html-to-image';
 import { calculateStatistics, getPeriodStats, getSmartInsights, calculateSessionStats } from './lib/statistics';
 import { StatsOverview } from './components/StatsOverview';
 import logo from './assets/app-logo-new.png';
-import background from './assets/background.png';
+const background = '/background.png';
 import { LockScreen } from './components/LockScreen';
 import { ShareCard } from './components/ShareCard';
 import LivePriceTicker from './components/LivePriceTicker';
@@ -1343,14 +1343,14 @@ function App() {
                  <img 
                    src={logo} 
                    alt="App Logo" 
-                   className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] opacity-80" 
+                   className="w-8 h-8 object-contain opacity-80" 
                  />
               </div>
 
-              {/* Transparent Mask - Provides smooth blur transition behind sticky elements */}
+              {/* Transparent Mask - Provides smooth transition behind sticky elements */}
               <div className={cn(
-                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter] pointer-events-none",
-                  isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
+                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity] pointer-events-none",
+                  isScrolled ? "opacity-100" : "opacity-0"
                 )} style={{ 
                   WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
                   maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
@@ -1383,7 +1383,6 @@ function App() {
                   <div className={cn(
                     "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-500",
                     theme === 'light' ? "border-[0.2px] border-black/5" : "border-none",
-                    "shadow-[0_0_1px_rgba(255,255,255,0.05)]"
                   )} />
 
                   {/* Bottom Blur Effect for Card on scroll - Hidden to avoid double blur */}
@@ -1394,8 +1393,6 @@ function App() {
                     background: theme === 'dark' 
                       ? 'linear-gradient(to bottom, transparent, rgba(5, 5, 7, 0.4))'
                       : 'linear-gradient(to bottom, transparent, rgba(248, 249, 250, 0.4))',
-                    backdropFilter: 'blur(10px)',
-                    WebkitBackdropFilter: 'blur(10px)',
                   }} />
 
                   {/* Share Button */}
@@ -1427,7 +1424,7 @@ function App() {
                   )}>
                     {/* Vertical Side Label */}
                     <div className={cn(
-                      "absolute left-0 top-0 bottom-0 w-8 sm:w-12 hidden xs:flex items-center justify-center border-r backdrop-blur-md rounded-l-[2.5rem] overflow-hidden z-20 transition-all duration-500",
+                      "absolute left-0 top-0 bottom-0 w-8 sm:w-12 hidden xs:flex items-center justify-center border-r rounded-l-[2.5rem] overflow-hidden z-20 transition-all duration-500",
                       theme === 'light' ? "bg-black/[0.05] border-black/[0.05]" : "bg-white/[0.05] border-white/[0.05]",
                       isScrolled ? "opacity-0 -translate-x-full" : "opacity-100 translate-x-0"
                     )}>
@@ -1478,7 +1475,7 @@ function App() {
                             )}>
                               <div className={cn(
                                 "rounded-full",
-                                session.active ? "bg-primary animate-pulse" : "bg-white/20",
+                                session.active ? "bg-primary" : "bg-white/20",
                                 "w-1 h-1"
                               )} />
                               <span className={cn(
@@ -1502,7 +1499,7 @@ function App() {
                               <div className={cn(
                                 "rounded-full transition-all duration-500",
                                 session.active 
-                                  ? "bg-primary animate-pulse" 
+                                  ? "bg-primary" 
                                   : theme === 'light' ? "bg-black/10" : "bg-white/10",
                                 isScrolled ? "w-1 h-1" : "w-1.5 h-1.5"
                               )} />
@@ -1534,13 +1531,13 @@ function App() {
                           </div>
                           <h2 className={cn(
                             "font-black tracking-tighter flex items-baseline transition-all duration-500", 
-                            theme === 'light' ? "text-slate-900" : "bg-gradient-to-b from-white via-white/80 to-white/30 bg-clip-text text-transparent drop-shadow-[0_4px_10px_rgba(255,255,255,0.2)]",
+                            theme === 'light' ? "text-slate-900" : "bg-gradient-to-b from-white via-white/80 to-white/30 bg-clip-text text-transparent",
                             isScrolled ? "text-4xl sm:text-7xl" : "text-3xl xs:text-5xl sm:text-8xl"
                           )}>
                             {Math.floor(currentCapital).toLocaleString()}
                             <span className={cn(
                               "flex items-baseline relative group/balance-dec transition-all duration-500",
-                              theme === 'light' ? "text-primary" : "bg-gradient-to-b from-white via-white/80 to-white/30 bg-clip-text text-transparent drop-shadow-[0_2px_5px_rgba(255,255,255,0.15)]",
+                              theme === 'light' ? "text-primary" : "bg-gradient-to-b from-white via-white/80 to-white/30 bg-clip-text text-transparent",
                               isScrolled ? "text-xl sm:text-xl" : "text-lg xs:text-xl sm:text-4xl"
                             )}>
                                 <span className="mx-0.5">.</span>
@@ -1721,7 +1718,6 @@ function App() {
                   <div className={cn(
                     "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-500",
                     theme === 'light' ? "border-[0.2px] border-black/5" : "border-[0.2px] border-white/10",
-                    "shadow-[0_0_1px_rgba(255,255,255,0.05)]"
                   )} />
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -1735,7 +1731,7 @@ function App() {
                   
                   <div className={cn("relative h-2 w-full rounded-full overflow-hidden", theme === 'light' ? "bg-black/[0.05]" : "bg-white/[0.05]")}>
                     <div 
-                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-500/40 to-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.4)] transition-all duration-1000 ease-out"
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-500/40 to-amber-500 transition-all duration-1000 ease-out"
                       style={{ width: `${targetProgress.weekly.percentage}%` }}
                     />
                   </div>
@@ -1752,7 +1748,6 @@ function App() {
                   <div className={cn(
                     "absolute inset-0 pointer-events-none rounded-[inherit] z-30 transition-all duration-500",
                     theme === 'light' ? "border-[0.2px] border-black/5" : "border-[0.2px] border-white/10",
-                    "shadow-[0_0_1px_rgba(255,255,255,0.05)]"
                   )} />
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -1766,7 +1761,7 @@ function App() {
                   
                   <div className={cn("relative h-2 w-full rounded-full overflow-hidden", theme === 'light' ? "bg-black/[0.05]" : "bg-white/[0.05]")}>
                     <div 
-                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary/40 to-primary shadow-[0_0_15px_rgba(212,175,55,0.4)] transition-all duration-1000 ease-out"
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary/40 to-primary transition-all duration-1000 ease-out"
                       style={{ width: `${targetProgress.monthly.percentage}%` }}
                     />
                   </div>
@@ -1783,9 +1778,9 @@ function App() {
               <div className="flex flex-col items-center justify-center mb-4">
                 <div className={cn(
                   "inline-flex items-center gap-2.5 px-6 py-2 border rounded-full shadow-2xl",
-                  theme === 'light' ? "bg-black/[0.05] border-black/[0.05]" : "bg-white/[0.05] backdrop-blur-md border border-white/[0.05]"
+                  theme === 'light' ? "bg-black/[0.05] border-black/[0.05]" : "bg-white/[0.05] border border-white/[0.05]"
                 )}>
-                  <div className={cn("w-1.5 h-1.5 rounded-full", theme === 'light' ? "bg-black/20" : "bg-white/20 shadow-[0_0_12px_rgba(255,255,255,0.1)]")} />
+                  <div className={cn("w-1.5 h-1.5 rounded-full", theme === 'light' ? "bg-black/20" : "bg-white/20")} />
                   <p className={cn("text-[11px] font-black uppercase tracking-[0.5em]", theme === 'light' ? "text-slate-900/20" : "text-white/20")}>Operation Stream</p>
                 </div>
               </div>
@@ -1801,8 +1796,8 @@ function App() {
                   >
                     <div className={cn(
                       "w-1.5 h-10 rounded-full",
-                      record.type === 'withdrawal' ? "bg-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.2)]" :
-                      record.profitLoss >= 0 ? "bg-green-500/40 shadow-[0_0_15px_rgba(34,197,94,0.2)]" : "bg-red-500/40 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+                      record.type === 'withdrawal' ? "bg-amber-500/40" :
+                      record.profitLoss >= 0 ? "bg-green-500/40" : "bg-red-500/40"
                     )} />
                     <div className="flex-1 flex items-center justify-between">
                       <div className="text-left">
@@ -1851,7 +1846,7 @@ function App() {
                 {records.length === 0 && (
                   <div className={cn(
                     "py-20 flex flex-col items-center justify-center border ios-card overflow-visible shadow-2xl",
-                    theme === 'light' ? "bg-white/40 border-white/50" : "bg-white/[0.05] backdrop-blur-md border border-white/[0.05]"
+                    theme === 'light' ? "bg-white/40 border-white/50" : "bg-white/[0.05] border border-white/[0.05]"
                   )}>
                     <div className={cn(
                       "w-16 h-16 rounded-full flex items-center justify-center mb-6 border",
@@ -1971,7 +1966,7 @@ function App() {
               {/* Transparent Mask - Provides smooth blur transition behind sticky elements */}
               <div className={cn(
                   "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter] pointer-events-none",
-                  isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
+                  isScrolled ? "opacity-100" : "opacity-0"
                 )} style={{ 
                   WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
                   maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
@@ -1985,7 +1980,7 @@ function App() {
                  <img 
                    src={logo} 
                    alt="App Logo" 
-                   className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] opacity-80" 
+                   className="w-8 h-8 object-contain opacity-80" 
                  />
               </div>
 
@@ -1995,9 +1990,9 @@ function App() {
               )}>
                 <div className={cn(
                   "inline-flex items-center gap-2.5 px-6 py-2 border rounded-full shadow-2xl",
-                  theme === 'light' ? "bg-black/[0.05] border-black/[0.05]" : "bg-white/[0.05] backdrop-blur-md border border-white/[0.05]"
+                  theme === 'light' ? "bg-black/[0.05] border-black/[0.05]" : "bg-white/[0.05] border border-white/[0.05]"
                 )}>
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_12px_rgba(59,130,245,0.6)] animate-pulse" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                   <p className={cn("text-[11px] font-black uppercase tracking-[0.5em]", theme === 'light' ? "text-slate-900/30" : "text-white/30")}>Trade Report</p>
                 </div>
               </div>
@@ -2019,7 +2014,7 @@ function App() {
                           className={cn(
                             "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all duration-500",
                             reportStatusFilter === 'all' 
-                              ? "bg-primary text-black shadow-lg shadow-primary/20 font-black" 
+                              ? "bg-primary text-black font-black" 
                               : (theme === 'light' ? "text-slate-900/30 hover:text-slate-900/50" : "text-white/30 hover:text-white/50") + " font-bold"
                           )}
                         >
@@ -2035,7 +2030,7 @@ function App() {
                           className={cn(
                             "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all duration-500",
                             reportStatusFilter === 'win' 
-                              ? "bg-green-500 text-white shadow-lg shadow-green-500/20 font-black" 
+                              ? "bg-green-500 text-white font-black" 
                               : (theme === 'light' ? "text-slate-900/30 hover:text-slate-900/50" : "text-white/30 hover:text-white/50") + " font-bold"
                           )}
                         >
@@ -2051,7 +2046,7 @@ function App() {
                           className={cn(
                             "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all duration-500",
                             reportStatusFilter === 'loss' 
-                              ? "bg-red-500 text-white shadow-lg shadow-red-500/20 font-black" 
+                              ? "bg-red-500 text-white font-black" 
                               : (theme === 'light' ? "text-slate-900/30 hover:text-slate-900/50" : "text-white/30 hover:text-white/50") + " font-bold"
                           )}
                         >
@@ -2288,7 +2283,7 @@ function App() {
               {/* Transparent Mask - Provides smooth blur transition behind sticky elements */}
               <div className={cn(
                   "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter] pointer-events-none",
-                  isScrolled ? "backdrop-blur-md opacity-100" : "backdrop-blur-0 opacity-0"
+                  isScrolled ? "opacity-100" : "opacity-0"
                 )} style={{ 
                   WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
                   maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
@@ -2302,7 +2297,7 @@ function App() {
                  <img 
                    src={logo} 
                    alt="App Logo" 
-                   className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] opacity-80" 
+                   className="w-8 h-8 object-contain opacity-80" 
                  />
               </div>
 
@@ -2315,7 +2310,6 @@ function App() {
                   theme === 'light' ? "bg-white/60 border border-white/50 shadow-lg" : "bg-white/[0.06] border border-white/10",
                   isScrolled ? "w-12 h-12 mb-2" : "w-16 h-16 mb-4"
                 )}>
-                  <div className="absolute inset-0 bg-primary/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                   <Settings className={cn("text-primary animate-spin-slow relative z-10 transition-all duration-500", isScrolled ? "w-6 h-6" : "w-8 h-8")} />
                 </div>
                 
@@ -2324,7 +2318,7 @@ function App() {
                     "flex items-center gap-1.5 mb-0.5 transition-all duration-500",
                     isScrolled ? "opacity-0 h-0 overflow-hidden" : "opacity-100 h-auto"
                   )}>
-                    <div className="w-1 h-1 rounded-full bg-primary shadow-[0_0_8px_rgba(212,175,55,0.4)] animate-pulse" />
+                    <div className="w-1 h-1 rounded-full bg-primary" />
                     <p className={cn("text-[8px] font-black uppercase tracking-[0.3em]", theme === 'light' ? "text-slate-400" : "text-white/20")}>Control Center</p>
                   </div>
                   <h2 className={cn(
@@ -2375,7 +2369,7 @@ function App() {
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 mb-1">
-                        <div className="w-1 h-1 rounded-full bg-indigo-500/40 shadow-[0_0_5px_rgba(99,102,241,0.3)]" />
+                        <div className="w-1 h-1 rounded-full bg-indigo-500/40" />
                         <p className={cn("text-[8px] font-black uppercase tracking-[0.2em]", theme === 'light' ? "text-slate-400" : "text-white/10")}>Identity</p>
                       </div>
                       <h3 className={cn("text-sm font-black uppercase tracking-wider truncate", theme === 'light' ? "text-slate-800" : "text-white")}>
@@ -2429,7 +2423,7 @@ function App() {
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5 mb-1">
-                      <div className="w-1 h-1 rounded-full bg-emerald-500/40 shadow-[0_0_5px_rgba(16,185,129,0.3)]" />
+                      <div className="w-1 h-1 rounded-full bg-emerald-500/40" />
                       <p className={cn("text-[8px] font-black uppercase tracking-[0.2em]", theme === 'light' ? "text-slate-400" : "text-white/10")}>Ledger</p>
                     </div>
                     <h4 className={cn("text-xs font-black uppercase tracking-widest", theme === 'light' ? "text-slate-800" : "text-white")}>Capital <span className="text-emerald-500/50">Base</span></h4>
@@ -2446,7 +2440,7 @@ function App() {
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5 mb-1">
-                      <div className="w-1 h-1 rounded-full bg-amber-500/40 shadow-[0_0_5px_rgba(245,158,11,0.3)]" />
+                      <div className="w-1 h-1 rounded-full bg-amber-500/40" />
                       <p className={cn("text-[8px] font-black uppercase tracking-[0.2em]", theme === 'light' ? "text-slate-400" : "text-white/10")}>Access</p>
                     </div>
                     <h4 className={cn("text-xs font-black uppercase tracking-widest", theme === 'light' ? "text-slate-800" : "text-white")}>Security <span className="text-amber-500/50">Hub</span></h4>
@@ -2463,7 +2457,7 @@ function App() {
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5 mb-1">
-                      <div className="w-1 h-1 rounded-full bg-blue-500/40 shadow-[0_0_5px_rgba(59,130,246,0.3)]" />
+                      <div className="w-1 h-1 rounded-full bg-blue-500/40" />
                       <p className={cn("text-[8px] font-black uppercase tracking-[0.2em]", theme === 'light' ? "text-slate-400" : "text-white/10")}>Ambition</p>
                     </div>
                     <h4 className={cn("text-xs font-black uppercase tracking-widest", theme === 'light' ? "text-slate-800" : "text-white")}>Profit <span className="text-blue-500/50">Goals</span></h4>
@@ -2488,7 +2482,7 @@ function App() {
                   <div>
                     <div className="flex items-center gap-1.5 mb-1">
                       <div className={cn(
-                        "w-1 h-1 rounded-full shadow-[0_0_5px_rgba(0,0,0,0.2)]",
+                        "w-1 h-1 rounded-full",
                         notificationsEnabled ? "bg-green-500/40" : "bg-primary/40"
                       )} />
                       <p className={cn("text-[8px] font-black uppercase tracking-[0.2em]", theme === 'light' ? "text-slate-400" : "text-white/10")}>Alerts</p>
@@ -2527,7 +2521,7 @@ function App() {
                     </div>
                     <div>
                       <div className="flex items-center gap-1 mb-0.5">
-                        <div className="w-1 h-1 rounded-full bg-primary/40 shadow-[0_0_5px_rgba(212,175,55,0.2)]" />
+                        <div className="w-1 h-1 rounded-full bg-primary/40" />
                         <p className={cn("text-[7px] font-black uppercase tracking-[0.2em]", theme === 'light' ? "text-slate-400" : "text-white/10")}>Information</p>
                       </div>
                       <span className={cn("text-xs font-black uppercase tracking-widest", theme === 'light' ? "text-slate-800" : "text-white/70")}>About <span className="text-primary/50">Fox Trade</span></span>
@@ -2544,7 +2538,7 @@ function App() {
                       </div>
                       <div>
                         <div className="flex items-center gap-1 mb-0.5">
-                          <div className="w-1 h-1 rounded-full bg-amber-500/40 shadow-[0_0_5px_rgba(245,158,11,0.2)]" />
+                          <div className="w-1 h-1 rounded-full bg-amber-500/40" />
                           <p className={cn("text-[7px] font-black uppercase tracking-[0.2em]", theme === 'light' ? "text-amber-600" : "text-white/10")}>Selective Wipe</p>
                         </div>
                         <span className={cn("text-xs font-black uppercase tracking-widest", theme === 'light' ? "text-amber-700" : "text-amber-500/70")}>Delete <span className="text-amber-500/50">By Date</span></span>
@@ -2622,7 +2616,7 @@ function App() {
                   </div>
                   <div>
                     <div className="flex items-center gap-1 mb-0.5">
-                      <div className="w-1 h-1 rounded-full bg-amber-500/40 shadow-[0_0_5px_rgba(245,158,11,0.2)]" />
+                      <div className="w-1 h-1 rounded-full bg-amber-500/40" />
                       <p className={cn("text-[7px] font-black uppercase tracking-[0.2em]", theme === 'light' ? "text-amber-600" : "text-white/10")}>Report Management</p>
                     </div>
                     <span className={cn("text-xs font-black uppercase tracking-widest", theme === 'light' ? "text-amber-700" : "text-amber-500/70")}>Clear <span className="text-amber-500/50">All Reports</span></span>
@@ -2651,13 +2645,13 @@ function App() {
                   </div>
                   <div>
                     <div className="flex items-center gap-1 mb-0.5">
-                      <div className="w-1 h-1 rounded-full bg-red-500/40 shadow-[0_0_5px_rgba(239,68,68,0.2)]" />
+                      <div className="w-1 h-1 rounded-full bg-red-500/40" />
                       <p className={cn("text-[7px] font-black uppercase tracking-[0.2em]", theme === 'light' ? "text-red-400" : "text-white/10")}>Maintenance</p>
                     </div>
                     <span className={cn("text-xs font-black uppercase tracking-widest", theme === 'light' ? "text-red-600" : "text-red-500/70")}>Wipe <span className="text-red-500/50">All Data</span></span>
                   </div>
                 </div>
-                <AlertTriangle className="w-5 h-5 text-red-500/20 group-hover:animate-pulse" />
+                <AlertTriangle className="w-5 h-5 text-red-500/20" />
               </button>
 
               <button 
@@ -2693,9 +2687,9 @@ function App() {
             {/* Modals follow below as they are state-driven */}
             {showAbout && (
               <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 animate-in fade-in duration-500">
-                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowAbout(false)} />
+                <div className="fixed inset-0 bg-black/20" onClick={() => setShowAbout(false)} />
                 <div className={cn(
-                  "relative w-full max-w-sm backdrop-blur-[50px] border-none rounded-[2.5rem] p-10 animate-in zoom-in duration-300 shadow-2xl overflow-hidden",
+                    "relative w-full max-w-sm border-none rounded-[2.5rem] p-10 animate-in zoom-in duration-300 shadow-2xl overflow-hidden",
                   theme === 'light' ? "bg-white/80" : "bg-white/[0.05]"
                 )}>
                   {/* Glass Edge Border Overlay */}
@@ -2728,7 +2722,7 @@ function App() {
                     </div>
 
                     <h3 className={cn("text-2xl font-black mb-2 tracking-tighter text-center uppercase", theme === 'light' ? "text-slate-900" : "text-white")}>FOX TRADE</h3>
-                    <div className="h-1 w-12 bg-primary rounded-full mb-8 shadow-[0_0_15px_rgba(255,184,0,0.4)]" />
+                    <div className="h-1 w-12 bg-primary rounded-full mb-8" />
 
                     <div className="space-y-6 text-center px-4">
                       <p className={cn("text-[11px] font-medium lowercase tracking-widest leading-relaxed", theme === 'light' ? "text-slate-600" : "text-white/60")}>
@@ -2755,9 +2749,9 @@ function App() {
             {/* Confirmation Modal */}
             {confirmAction && (
               <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setConfirmAction(null)} />
+                <div className="fixed inset-0 bg-black/20" onClick={() => setConfirmAction(null)} />
                 <div className={cn(
-                  "relative w-full max-w-xs backdrop-blur-[50px] border-none rounded-[2.5rem] p-8 animate-in zoom-in duration-300 shadow-2xl overflow-hidden",
+                  "relative w-full max-w-xs border-none rounded-[2.5rem] p-8 animate-in zoom-in duration-300 shadow-2xl overflow-hidden",
                   theme === 'light' ? "bg-white/80" : "bg-white/[0.05]"
                 )}>
                   {/* Glass Edge Border Overlay */}
@@ -2770,7 +2764,7 @@ function App() {
                   <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent rounded-[2.5rem] pointer-events-none" />
 
                   <div className={cn(
-                    "relative z-10 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 border animate-pulse",
+                    "relative z-10 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 border",
                     confirmAction.type === 'reset' ? "bg-rose-500/10 border-rose-500/20" : 
                     confirmAction.type === 'reset_reports' ? "bg-amber-500/10 border-amber-500/20" :
                     "bg-sky-500/10 border-sky-500/20"
@@ -2829,9 +2823,9 @@ function App() {
             {/* Password Change Modal */}
             {isChangingPass && (
               <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsChangingPass(false)} />
+                <div className="fixed inset-0 bg-black/20" onClick={() => setIsChangingPass(false)} />
                 <div className={cn(
-                  "relative w-full max-w-sm backdrop-blur-[50px] border-none rounded-[2.5rem] p-10 shadow-2xl overflow-hidden",
+                  "relative w-full max-w-sm border-none rounded-[2.5rem] p-10 shadow-2xl overflow-hidden",
                   theme === 'light' ? "bg-white/80" : "bg-white/[0.05]"
                 )}>
                   {/* Glass Edge Border Overlay */}
@@ -2894,9 +2888,9 @@ function App() {
             {/* Targets Editing Modal */}
             {isEditingTargets && (
               <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsEditingTargets(false)} />
+                <div className="fixed inset-0 bg-black/20" onClick={() => setIsEditingTargets(false)} />
                 <div className={cn(
-                  "relative w-full max-w-sm backdrop-blur-[50px] border-none rounded-[2.5rem] p-10 shadow-2xl overflow-hidden",
+                  "relative w-full max-w-sm border-none rounded-[2.5rem] p-10 shadow-2xl overflow-hidden",
                   theme === 'light' ? "bg-white/80" : "bg-white/[0.05]"
                 )}>
                   {/* Glass Edge Border Overlay */}
@@ -2999,7 +2993,7 @@ function App() {
         {/* Theme Overlay for Readability */}
         <div className={cn(
           "absolute inset-0 transition-all duration-500",
-          theme === 'light' ? "bg-white/10" : "bg-black/30"
+          theme === 'light' ? "bg-white/10" : "bg-black/92"
         )} />
         
         {/* Grain/Noise Texture for Premium Feel */}
@@ -3042,7 +3036,7 @@ function App() {
 
       {/* iOS 26 Tab Bar - Glassy Water Effect */}
       <nav className={cn(
-        "fixed bottom-[calc(env(safe-area-inset-bottom)+1.5rem)] left-4 right-4 z-50 backdrop-blur-2xl border px-2 py-2 flex items-center justify-between rounded-[2.5rem] overflow-visible transition-all duration-500",
+        "fixed bottom-[calc(env(safe-area-inset-bottom)+1.5rem)] left-4 right-4 z-50 border px-2 py-2 flex items-center justify-between rounded-[2.5rem] overflow-visible transition-all duration-500",
         theme === 'light' 
           ? "bg-gradient-to-b from-white/40 via-white/20 to-white/10 border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)]" 
           : "bg-gradient-to-b from-white/15 via-white/5 to-white/5 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]"
@@ -3073,7 +3067,7 @@ function App() {
           <button 
             onClick={() => { fileInputRef.current?.click(); haptic('medium'); }}
             className={cn(
-              "w-16 h-16 sm:w-20 sm:h-20 backdrop-blur-[50px] rounded-[2rem] sm:rounded-[2.5rem] p-3 sm:p-4 border shadow-[0_15px_35px_rgba(0,0,0,0.4)] active:scale-90 transition-all duration-300 flex items-center justify-center group relative overflow-hidden",
+              "w-16 h-16 sm:w-20 sm:h-20 rounded-[2rem] sm:rounded-[2.5rem] p-3 sm:p-4 border shadow-[0_15px_35px_rgba(0,0,0,0.4)] active:scale-90 transition-all duration-300 flex items-center justify-center group relative overflow-hidden",
               theme === 'light' ? "bg-white/80 border-white/60" : "bg-white/[0.05] border-white/5"
             )}
           >
@@ -3119,10 +3113,10 @@ function App() {
       {/* MT5 Import Preview Modal */}
       {mt5Preview && (
         <>
-          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[130] animate-fade-in" onClick={() => setMt5Preview(null)} />
+          <div className="fixed inset-0 bg-black/20 z-[130] animate-fade-in" onClick={() => setMt5Preview(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[140] w-[95%] max-w-lg">
             <div className={cn(
-              "relative w-full backdrop-blur-[50px] border-none rounded-[2.5rem] p-8 animate-in zoom-in duration-300 shadow-2xl overflow-hidden",
+              "relative w-full border-none rounded-[2.5rem] p-8 animate-in zoom-in duration-300 shadow-2xl overflow-hidden",
               theme === 'light' ? "bg-white/80" : "bg-white/[0.05]"
             )}>
               {/* Glass Edge Border Overlay */}
@@ -3148,8 +3142,8 @@ function App() {
                 </div>
               
               <div className="flex flex-col items-center">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/[0.05] border border-white/[0.05] rounded-full backdrop-blur-md mb-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(59,130,246,0.5)] animate-pulse" />
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/[0.05] border border-white/[0.05] rounded-full mb-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                   <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/30">Data Ingestion</p>
                 </div>
               </div>
@@ -3248,8 +3242,8 @@ function App() {
       {/* Geometric Initial Capital Modal */}
       {isEditingInitial && (
         <>
-          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[110] animate-fade-in" onClick={() => setIsEditingInitial(false)} />
-            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-[90%] max-w-sm bg-white/[0.05] backdrop-blur-[30px] border border-white/5 rounded-[2.5rem] p-10 animate-in zoom-in duration-300 shadow-2xl overflow-hidden">
+          <div className="fixed inset-0 bg-black/20 z-[110] animate-fade-in" onClick={() => setIsEditingInitial(false)} />
+            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-[90%] max-w-sm bg-white/[0.05] border border-white/5 rounded-[2.5rem] p-10 animate-in zoom-in duration-300 shadow-2xl overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent rounded-[2.5rem] pointer-events-none" />
             <div className="w-16 h-16 bg-white/[0.05] border border-white/[0.05] rounded-3xl flex items-center justify-center mx-auto mb-6">
               <Wallet className="w-8 h-8 text-white/20" />
@@ -3281,8 +3275,8 @@ function App() {
       {/* Withdrawal Modal */}
       {isAddingWithdrawal && (
         <>
-          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[110] animate-fade-in" onClick={() => setIsAddingWithdrawal(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-[90%] max-w-sm bg-white/[0.05] backdrop-blur-[30px] border border-white/5 rounded-[2.5rem] p-10 animate-in zoom-in duration-300 shadow-2xl">
+          <div className="fixed inset-0 bg-black/20 z-[110] animate-fade-in" onClick={() => setIsAddingWithdrawal(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-[90%] max-w-sm bg-white/[0.05] border border-white/5 rounded-[2.5rem] p-10 animate-in zoom-in duration-300 shadow-2xl">
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent rounded-[2.5rem] pointer-events-none" />
             <div className="relative z-10">
               <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
@@ -3334,12 +3328,12 @@ function App() {
       {/* Glassmorphism Delete Confirmation Modal */}
       {recordToDelete && (
         <>
-          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[200] animate-fade-in" onClick={() => setRecordToDelete(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[210] w-[85%] max-w-xs bg-white/[0.05] backdrop-blur-[30px] border border-white/5 rounded-[2.5rem] p-8 animate-in zoom-in duration-300 shadow-2xl overflow-hidden">
+          <div className="fixed inset-0 bg-black/20 z-[200] animate-fade-in" onClick={() => setRecordToDelete(null)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[210] w-[85%] max-w-xs bg-white/[0.05] border border-white/5 rounded-[2.5rem] p-8 animate-in zoom-in duration-300 shadow-2xl overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent rounded-[2.5rem] pointer-events-none" />
             
             <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-3xl flex items-center justify-center mx-auto mb-6 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-red-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
               <Trash2 className="w-8 h-8 text-red-500 relative z-10" />
             </div>
 

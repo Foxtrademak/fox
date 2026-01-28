@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ComposedChart, Bar } from 'recharts';
 import { type DailyRecord } from '../types';
 import { Activity, CandlestickChart, LineChart } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, haptic } from '../lib/utils';
 
 interface TradeChartProps {
   data: DailyRecord[];
@@ -206,7 +206,7 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
   if (activeData.length <= 1) {
     return (
       <div className={cn(
-        "h-full w-full flex flex-col items-center justify-center text-muted-foreground backdrop-blur-xl border ios-card overflow-visible",
+        "h-full w-full flex flex-col items-center justify-center text-muted-foreground border ios-card",
         "bg-transparent border-white/[0.05]",
         className
       )}>
@@ -223,13 +223,17 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
 
   return (
     <div className={cn(
-      "w-full h-full flex flex-col p-2 sm:p-6 pb-4 sm:pb-12 bg-transparent",
+      "w-full h-full flex flex-col p-3 sm:p-8 pb-4 sm:pb-14 ios-card relative overflow-hidden",
+      "bg-white/[0.01] border border-white/[0.04] shadow-2xl",
       className
     )}>
-      <div className="flex items-center justify-between mb-2 sm:mb-4 relative z-10 px-2">
+      {/* Dynamic Background Glow - Subtle */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1/2 bg-primary/5 blur-[120px] pointer-events-none" />
+      
+      <div className="flex items-center justify-between mb-4 sm:mb-8 relative z-10 px-2">
         <div className="flex items-center gap-2 sm:gap-4">
           <div className={cn(
-            "w-8 h-8 sm:w-10 sm:h-10 ios-card-mini overflow-visible p-0 flex items-center justify-center border",
+            "w-8 h-8 sm:w-10 sm:h-10 ios-card-mini p-0 flex items-center justify-center border",
             "bg-white/[0.06] border-white/[0.05]"
           )}>
             <Activity className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4", "text-primary/60")} />
@@ -253,44 +257,44 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
           </div>
         </div>
 
-        {/* View Mode Toggle */}
+        {/* View Mode Toggle - Premium iOS Segmented Control */}
         <div className={cn(
-          "flex items-center p-0.5 sm:p-1 ios-card-mini overflow-visible p-1 border shadow-inner transition-all duration-300",
-          "bg-black/40 border-white/5"
+          "flex items-center p-1 rounded-2xl border transition-all duration-500",
+          "bg-white/[0.03] border-white/[0.05] shadow-inner backdrop-blur-sm"
         )}>
           <button 
             type="button"
             onClick={(e) => {
               e.preventDefault();
-              e.stopPropagation();
               setViewMode('line');
+              haptic('light');
             }}
             className={cn(
-              "px-2 sm:px-4 py-1 sm:py-2 ios-card-mini overflow-visible transition-all duration-300 flex items-center gap-1 sm:gap-2",
+              "px-5 sm:px-10 py-2.5 rounded-xl transition-all duration-500 flex items-center gap-3 group/btn relative",
               viewMode === 'line' 
-                ? "bg-white/[0.05] text-white border border-white/10 shadow-lg"
-                : "text-white/20 hover:text-white/40"
+                ? "bg-primary text-primary-foreground font-black shadow-[0_4px_20px_-5px_rgba(234,179,8,0.5)]"
+                : "text-white/30 hover:text-white/60 hover:bg-white/[0.02]"
             )}
           >
-            <LineChart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-wider hidden xs:inline">Line</span>
+            <LineChart className={cn("w-4 h-4 transition-transform duration-500 group-hover/btn:scale-110", viewMode === 'line' ? "text-primary-foreground" : "text-white/30")} />
+            <span className="text-[10px] sm:text-[12px] uppercase tracking-[0.1em] font-black">Line</span>
           </button>
           <button 
             type="button"
             onClick={(e) => {
               e.preventDefault();
-              e.stopPropagation();
               setViewMode('candle');
+              haptic('light');
             }}
             className={cn(
-              "px-2 sm:px-4 py-1 sm:py-2 ios-card-mini overflow-visible transition-all duration-300 flex items-center gap-1 sm:gap-2",
+              "px-5 sm:px-10 py-2.5 rounded-xl transition-all duration-500 flex items-center gap-3 group/btn relative",
               viewMode === 'candle' 
-                ? "bg-white/[0.05] text-white border border-white/10 shadow-lg"
-                : "text-white/20 hover:text-white/40"
+                ? "bg-primary text-primary-foreground font-black shadow-[0_4px_20px_-5px_rgba(234,179,8,0.5)]"
+                : "text-white/30 hover:text-white/60 hover:bg-white/[0.02]"
             )}
           >
-            <CandlestickChart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-wider hidden xs:inline">Candle</span>
+            <CandlestickChart className={cn("w-4 h-4 transition-transform duration-500 group-hover/btn:scale-110", viewMode === 'candle' ? "text-primary-foreground" : "text-white/30")} />
+            <span className="text-[10px] sm:text-[12px] uppercase tracking-[0.1em] font-black">Candle</span>
           </button>
         </div>
       </div>
@@ -339,14 +343,12 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
               <Tooltip 
                 cursor={{ stroke: '#22c55e', strokeWidth: 1, strokeDasharray: '4 4' }}
                 contentStyle={{ 
-                  backgroundColor: 'rgba(10,10,12,0.8)', 
-                  backdropFilter: 'blur(16px)',
+                  backgroundColor: 'rgba(10,10,12,0.95)', 
                   border: '1px solid rgba(255,255,255,0.05)',
                   borderRadius: '1.2rem',
                   fontSize: '10px',
                   fontWeight: '900',
-                  color: '#ffffff',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+                  color: '#ffffff'
                 }}
                 itemStyle={{ color: '#ffffff', padding: '0' }}
                 labelStyle={{ color: 'rgba(255,255,255,0.4)', marginBottom: '4px', fontSize: '8px', fontWeight: 'bold' }}
@@ -403,8 +405,8 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
                     if (point.isFuture) {
                       return (
                         <div className={cn(
-                          "backdrop-blur-xl border p-2 rounded-xl shadow-2xl",
-                          "bg-black/80 border-white/10"
+                          "border p-2 rounded-xl",
+                          "bg-black/95 border-white/10"
                         )}>
                           <span className={cn("text-[10px] font-black", "text-white/40")}>{label}</span>
                           <div className={cn("text-[9px] font-black uppercase tracking-widest mt-1", "text-white/20")}>Empty Space</div>
@@ -415,8 +417,8 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
 
                     return (
                       <div className={cn(
-                        "backdrop-blur-xl border p-3 rounded-2xl shadow-2xl min-w-[140px]",
-                        "bg-black/80 border-white/10"
+                        "border p-3 rounded-2xl min-w-[140px]",
+                        "bg-black/95 border-white/10"
                       )}>
                         <div className={cn("flex justify-between items-center mb-2 border-b pb-1", "border-white/5")}>
                           <span className={cn("text-[10px] font-black", "text-white/40")}>{label}</span>
