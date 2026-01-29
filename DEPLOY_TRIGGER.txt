@@ -1,1 +1,1 @@
-Final Success Deployment v31.1: Thu Jan 29 03:00:00 EET 2026 (Rollback to Commit f37347a)
+Final Success Deployment v31.2: Thu Jan 29 03:00:00 EET 2026 (Restored Glassy Popups)

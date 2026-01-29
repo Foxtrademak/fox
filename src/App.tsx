@@ -2629,9 +2629,9 @@ function App() {
             {/* Modals follow below as they are state-driven */}
             {showAbout && (
               <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 animate-in fade-in duration-500">
-                <div className="fixed inset-0 bg-black/20" onClick={() => setShowAbout(false)} />
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-xl" onClick={() => setShowAbout(false)} />
                 <div className={cn(
-                    "relative w-full max-w-sm border-none rounded-[2.5rem] p-10 animate-in zoom-in duration-300 shadow-2xl overflow-hidden",
+                    "relative w-full max-w-sm border-none rounded-[2.5rem] p-10 animate-in zoom-in duration-300 shadow-2xl overflow-hidden backdrop-blur-2xl",
                   theme === 'light' ? "bg-white/80" : "bg-white/[0.05]"
                 )}>
                   {/* Glass Edge Border Overlay */}
@@ -2691,9 +2691,9 @@ function App() {
             {/* Confirmation Modal */}
             {confirmAction && (
               <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                <div className="fixed inset-0 bg-black/20" onClick={() => setConfirmAction(null)} />
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-xl" onClick={() => setConfirmAction(null)} />
                 <div className={cn(
-                  "relative w-full max-w-xs border-none rounded-[2.5rem] p-8 animate-in zoom-in duration-300 shadow-2xl overflow-hidden",
+                  "relative w-full max-w-xs border-none rounded-[2.5rem] p-8 animate-in zoom-in duration-300 shadow-2xl overflow-hidden backdrop-blur-2xl",
                   theme === 'light' ? "bg-white/80" : "bg-white/[0.05]"
                 )}>
                   {/* Glass Edge Border Overlay */}
@@ -2765,10 +2765,10 @@ function App() {
             {/* Password Change Modal */}
             {isChangingPass && (
               <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                <div className="fixed inset-0 bg-black/20" onClick={() => setIsChangingPass(false)} />
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-xl" onClick={() => setIsChangingPass(false)} />
                 <div className={cn(
-                  "relative w-full max-w-sm border-none rounded-[2.5rem] p-10 shadow-2xl overflow-hidden",
-                  theme === 'light' ? "bg-white/80" : "bg-white/[0.05]"
+                    "relative w-full max-w-sm border-none rounded-[2.5rem] p-8 animate-in zoom-in duration-300 shadow-2xl overflow-hidden backdrop-blur-2xl",
+                  theme === 'light' ? "bg-white/95" : "bg-white/[0.05]"
                 )}>
                   {/* Glass Edge Border Overlay */}
                   <div className={cn(
@@ -2830,9 +2830,9 @@ function App() {
             {/* Targets Editing Modal */}
             {isEditingTargets && (
               <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                <div className="fixed inset-0 bg-black/20" onClick={() => setIsEditingTargets(false)} />
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-xl" onClick={() => setIsEditingTargets(false)} />
                 <div className={cn(
-                  "relative w-full max-w-sm border-none rounded-[2.5rem] p-10 shadow-2xl overflow-hidden",
+                  "relative w-full max-w-sm border-none rounded-[2.5rem] p-10 shadow-2xl overflow-hidden backdrop-blur-2xl",
                   theme === 'light' ? "bg-white/80" : "bg-white/[0.05]"
                 )}>
                   {/* Glass Edge Border Overlay */}
@@ -3041,10 +3041,10 @@ function App() {
       {/* MT5 Import Preview Modal */}
       {mt5Preview && (
         <>
-          <div className="fixed inset-0 bg-black/20 z-[130] animate-fade-in" onClick={() => setMt5Preview(null)} />
+          <div className="fixed inset-0 bg-black/20 z-[130] animate-fade-in backdrop-blur-xl" onClick={() => setMt5Preview(null)} />
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[140] w-[95%] max-w-lg">
             <div className={cn(
-              "relative w-full border-none rounded-[2.5rem] p-8 animate-in zoom-in duration-300 shadow-2xl overflow-hidden",
+              "relative w-full border-none rounded-[2.5rem] p-8 animate-in zoom-in duration-300 shadow-2xl overflow-hidden backdrop-blur-2xl",
               theme === 'light' ? "bg-white/80" : "bg-white/[0.05]"
             )}>
               {/* Glass Edge Border Overlay */}
@@ -3169,8 +3169,8 @@ function App() {
       {/* Geometric Initial Capital Modal */}
       {isEditingInitial && (
         <>
-          <div className="fixed inset-0 bg-black/20 z-[110] animate-fade-in" onClick={() => setIsEditingInitial(false)} />
-            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-[90%] max-w-sm bg-white/[0.05] border border-white/5 rounded-[2.5rem] p-10 animate-in zoom-in duration-300 shadow-2xl overflow-hidden">
+          <div className="fixed inset-0 bg-black/20 z-[110] animate-fade-in backdrop-blur-xl" onClick={() => setIsEditingInitial(false)} />
+            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-[90%] max-w-sm bg-white/[0.05] border border-white/5 rounded-[2.5rem] p-10 animate-in zoom-in duration-300 shadow-2xl overflow-hidden backdrop-blur-2xl">
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent rounded-[2.5rem] pointer-events-none" />
             <div className="w-16 h-16 bg-white/[0.05] border border-white/[0.05] rounded-3xl flex items-center justify-center mx-auto mb-6">
               <Wallet className="w-8 h-8 text-white/20" />
@@ -3202,8 +3202,8 @@ function App() {
       {/* Withdrawal Modal */}
       {isAddingWithdrawal && (
         <>
-          <div className="fixed inset-0 bg-black/20 z-[110] animate-fade-in" onClick={() => setIsAddingWithdrawal(false)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-[90%] max-w-sm bg-white/[0.05] border border-white/5 rounded-[2.5rem] p-10 animate-in zoom-in duration-300 shadow-2xl">
+          <div className="fixed inset-0 bg-black/20 z-[110] animate-fade-in backdrop-blur-xl" onClick={() => setIsAddingWithdrawal(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[120] w-[90%] max-w-sm bg-white/[0.05] border border-white/5 rounded-[2.5rem] p-10 animate-in zoom-in duration-300 shadow-2xl backdrop-blur-2xl">
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent rounded-[2.5rem] pointer-events-none" />
             <div className="relative z-10">
               <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
@@ -3255,8 +3255,8 @@ function App() {
       {/* Glassmorphism Delete Confirmation Modal */}
       {recordToDelete && (
         <>
-          <div className="fixed inset-0 bg-black/20 z-[200] animate-fade-in" onClick={() => setRecordToDelete(null)} />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[210] w-[85%] max-w-xs bg-white/[0.05] border border-white/5 rounded-[2.5rem] p-8 animate-in zoom-in duration-300 shadow-2xl overflow-hidden">
+          <div className="fixed inset-0 bg-black/20 z-[200] animate-fade-in backdrop-blur-xl" onClick={() => setRecordToDelete(null)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[210] w-[85%] max-w-xs bg-white/[0.05] border border-white/5 rounded-[2.5rem] p-8 animate-in zoom-in duration-300 shadow-2xl overflow-hidden backdrop-blur-2xl">
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent rounded-[2.5rem] pointer-events-none" />
             
             <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-3xl flex items-center justify-center mx-auto mb-6 relative overflow-hidden group">
