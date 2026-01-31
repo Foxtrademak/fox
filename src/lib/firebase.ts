@@ -13,13 +13,13 @@ import { getStorage } from 'firebase/storage';
 // IMPORTANT: For Desktop (Electron) builds, ensure you add "localhost" 
 // to your Authorized Domains in the Firebase Console (Authentication > Settings)
 const firebaseConfig = { 
-  apiKey: "AIzaSyDQ3Gvx7KNs-K38Y-BB7OTipqFlooYuKzI", 
-  authDomain: "fox-trade.firebaseapp.com", 
-  projectId: "fox-trade", 
-  storageBucket: "fox-trade.firebasestorage.app", 
-  messagingSenderId: "1052422097736", 
-  appId: "1:1052422097736:web:d8df074b1fd3b4b3bec17d", 
-  measurementId: "G-F6ND60QHF8" 
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY, 
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN, 
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID, 
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET, 
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID, 
+  appId: import.meta.env.VITE_FIREBASE_APP_ID, 
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID 
 };
 
 // Initialize Firebase

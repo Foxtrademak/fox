@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
+    
+    <!-- PRELOAD BACKGROUND FOR INSTANT GLASS EFFECT -->
+    <link rel="preload" as="image" href="/background.webp" type="image/webp" />
     
     <!-- FAVICON -->
     <link rel="icon" type="image/webp" href="https://foxtrademak.github.io/fox/fox-app-icon.webp" />
@@ -28,6 +28,14 @@
     
     <title>Fox Trade</title>
     
+    <style>
+      body, #root {
+        background-color: #0a0a0c;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+
     <script>
       // Only run version check if NOT in Electron
       const isElectron = navigator.userAgent.toLowerCase().includes(' electron/');
@@ -39,7 +47,8 @@
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
         }
-        window.location.href = window.location.origin + window.location.pathname + '?update=' + Date.now();
+        // Redirect removed to prevent double-loading delay
+        // window.location.href = window.location.origin + window.location.pathname + '?update=' + Date.now();
       }
     </script>
   </head>

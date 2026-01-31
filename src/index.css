@@ -90,26 +90,13 @@
   }
 
   .dark body {
-    background: url('./assets/background.webp') no-repeat center center fixed;
-    background-size: cover;
-    background-color: #000000;
+    @apply bg-background;
   }
 
-  /* Black Glass Overlay */
-  .dark body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.92); /* Dark black overlay */
-    z-index: -1;
-    pointer-events: none;
-  }
+  /* Black Glass Overlay removed - using AppBackground instead */
 
   .light body {
-    background: 
-      radial-gradient(circle at 0% 0%, rgba(212, 175, 55, 0.05), transparent 40%),
-      radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.05), transparent 40%),
-      #f8f9fa;
+    @apply bg-background;
   }
 
   /* Smooth transitions for all interactive elements */
@@ -129,15 +116,20 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 90; /* High enough to cover content (z-10), but lower than Main Card (z-[100]) */
+    z-index: 90;
     pointer-events: none;
     height: calc(env(safe-area-inset-top) + 8rem);
-    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.4s ease-in-out, visibility 0.4s;
     opacity: 0;
+    visibility: hidden;
+    contain: strict;
+    transform: translateZ(0);
+    will-change: opacity, visibility;
   }
 
   .gradient-blur-header.is-scrolled {
     opacity: 1;
+    visibility: visible;
   }
 
   /* The actual blur layers to create a smooth gradient blur effect */
@@ -145,22 +137,10 @@
     content: '';
     position: absolute;
     inset: 0;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    mask-image: linear-gradient(to bottom, 
-      black 0%, 
-      black calc(env(safe-area-inset-top) + 2rem),
-      rgba(0, 0, 0, 0.8) calc(env(safe-area-inset-top) + 5rem),
-      rgba(0, 0, 0, 0.4) calc(env(safe-area-inset-top) + 7rem),
-      transparent 100%
-    );
-    -webkit-mask-image: linear-gradient(to bottom, 
-      black 0%, 
-      black calc(env(safe-area-inset-top) + 2rem),
-      rgba(0, 0, 0, 0.8) calc(env(safe-area-inset-top) + 5rem),
-      rgba(0, 0, 0, 0.4) calc(env(safe-area-inset-top) + 7rem),
-      transparent 100%
-    );
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    mask-image: linear-gradient(to bottom, black, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, black, transparent);
   }
 
   /* Dark mode gradient overlay */
@@ -236,40 +216,50 @@
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.01);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    isolation: isolate;
   }
 
   .light .glass-morphism {
     background: rgba(255, 255, 255, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    isolation: isolate;
   }
 
   .ios-card {
-    @apply relative transition-all duration-500 overflow-hidden;
+    @apply relative transition-all duration-300 overflow-hidden;
     border-radius: 2.5rem;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    isolation: isolate;
+    transform: translateZ(0);
     @apply p-4 sm:p-6;
   }
 
   .ios-premium-card {
-    @apply relative transition-all duration-500 overflow-hidden;
-    border-radius: 3rem;
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    @apply p-6 sm:p-8;
+    @apply relative transition-all duration-300 overflow-hidden;
+    border-radius: 2.5rem;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 215, 0, 0.02) 100%);
+    border: 1px solid rgba(255, 215, 0, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    isolation: isolate;
+    transform: translateZ(0);
+    @apply p-4 sm:p-6;
   }
 
   .ios-card-mini {
-    @apply relative transition-all duration-500 overflow-hidden;
-    border-radius: 1.5rem;
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    @apply p-4;
+    @apply relative transition-all duration-300 overflow-hidden;
+    border-radius: 1.75rem;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    isolation: isolate;
+    transform: translateZ(0);
+    @apply p-4 sm:p-5;
   }
 
   /* Shared premium effects for all cards */
@@ -324,6 +314,10 @@
 
   .ios-tab-bar {
     @apply fixed bottom-8 left-6 right-6 h-[85px] z-50 flex items-center justify-around px-4 rounded-[2.5rem];
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    will-change: backdrop-filter;
+    isolation: isolate;
   }
 
   .dark .ios-tab-bar {

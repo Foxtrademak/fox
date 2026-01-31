@@ -28,9 +28,9 @@ export interface SmartInsight {
 }
 
 export interface PeriodStats {
-  label: string;
-  profit: number;
-  count: number;
+  weekly: { label: string; profit: number; count: number }[];
+  monthly: { label: string; profit: number; count: number }[];
+  daily: { label: string; profit: number; count: number }[];
 }
 
 export interface SessionStats {
@@ -39,6 +39,128 @@ export interface SessionStats {
   count: number;
   winRate: number;
 }
+
+export interface TargetProgress {
+  weekly: { profit: number; target: number; percentage: number };
+  monthly: { profit: number; target: number; percentage: number };
+}
+
+export interface GeniusMetrics {
+  healthScore: number;
+  projected30D: number;
+}
+
+export interface ChartPoint {
+  displayDate: string;
+  fullDate: string;
+  profit: number | null;
+  capital: number | null;
+  open: number | null;
+  close: number | null;
+  high: number | null;
+  low: number | null;
+  isStart: boolean;
+  isFuture: boolean;
+}
+
+export const calculateChartData = (data: DailyRecord[], initialCapital: number): { realData: ChartPoint[], futureData: ChartPoint[] } => {
+  if (data.length === 0) return { realData: [], futureData: [] };
+
+  const sortedRecords = [...data].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
+  const groupedByDate = sortedRecords.reduce((acc: Record<string, { date: string, profit: number, records: DailyRecord[] }>, curr) => {
+    const dateKey = new Date(curr.date).toISOString().split('T')[0];
+    if (!acc[dateKey]) {
+      acc[dateKey] = {
+        date: dateKey,
+        profit: 0,
+        records: []
+      };
+    }
+    acc[dateKey].profit += curr.profitLoss;
+    acc[dateKey].records.push(curr);
+    return acc;
+  }, {});
+
+  const initialPoint: ChartPoint = {
+    displayDate: 'Start',
+    fullDate: 'initial',
+    profit: 0,
+    capital: initialCapital,
+    open: initialCapital,
+    close: initialCapital,
+    high: initialCapital,
+    low: initialCapital,
+    isStart: true,
+    isFuture: false
+  };
+
+  const sortedGroups = Object.values(groupedByDate)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  const allPoints: ChartPoint[] = [];
+  let runningCap = initialCapital;
+  
+  for (const group of sortedGroups) {
+    const open = runningCap;
+    let dayHigh = open;
+    let dayLow = open;
+    let tempCap = open;
+    
+    group.records.forEach((r: DailyRecord) => {
+      const profit = r.profitLoss || 0;
+      tempCap += profit;
+      dayHigh = Math.max(dayHigh, tempCap);
+      dayLow = Math.min(dayLow, tempCap);
+    });
+
+    const close = open + (group.profit || 0);
+    runningCap = close;
+
+    allPoints.push({
+      displayDate: new Date(group.date).toLocaleDateString('en-US', { day: 'numeric', month: 'numeric' }),
+      fullDate: group.date,
+      profit: group.profit || 0,
+      capital: Number(runningCap.toFixed(2)) || 0,
+      open: Number(open.toFixed(2)) || 0,
+      close: Number(close.toFixed(2)) || 0,
+      high: Number(dayHigh.toFixed(2)) || 0,
+      low: Number(dayLow.toFixed(2)) || 0,
+      isStart: false,
+      isFuture: false
+    });
+  }
+
+  const combined = [initialPoint, ...allPoints];
+  
+  const futureData: ChartPoint[] = [...combined];
+  if (futureData.length > 0) {
+    const lastPoint = futureData[futureData.length - 1];
+    const lastDate = new Date(lastPoint.fullDate === 'initial' ? new Date() : lastPoint.fullDate);
+    
+    for (let i = 1; i <= 30; i++) {
+      const futureDate = new Date(lastDate);
+      futureDate.setDate(lastDate.getDate() + i);
+      
+      futureData.push({
+        displayDate: futureDate.toLocaleDateString('en-US', { day: 'numeric', month: 'numeric' }),
+        fullDate: futureDate.toISOString().split('T')[0],
+        profit: null,
+        capital: null,
+        open: null,
+        close: null,
+        high: null,
+        low: null,
+        isStart: false,
+        isFuture: true
+      });
+    }
+  }
+
+  return { realData: combined, futureData };
+};
 
 export const calculateSessionStats = (trades: MT5Trade[]): SessionStats[] => {
   const sessionStats: Record<string, { profit: number, count: number, wins: number }> = {
@@ -151,6 +273,73 @@ export const getSmartInsights = (records: DailyRecord[], reportTrades: MT5Trade[
   }
 
   return insights;
+};
+
+export const calculateTargetProgress = (records: DailyRecord[], weeklyTarget: number, monthlyTarget: number): TargetProgress => {
+  const now = new Date();
+  
+  // Weekly Profit (UTC)
+  const startOfWeek = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  startOfWeek.setUTCDate(startOfWeek.getUTCDate() - startOfWeek.getUTCDay());
+  startOfWeek.setUTCHours(0, 0, 0, 0);
+  
+  const weeklyProfit = records.reduce((sum, record) => {
+    if (record.type === 'withdrawal') return sum;
+    const recordDate = new Date(record.date);
+    return recordDate.getTime() >= startOfWeek.getTime() ? sum + record.profitLoss : sum;
+  }, 0);
+
+  // Monthly Profit (UTC)
+  const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const monthlyProfit = records.reduce((sum, record) => {
+    if (record.type === 'withdrawal') return sum;
+    const recordDate = new Date(record.date);
+    return recordDate.getTime() >= startOfMonth.getTime() ? sum + record.profitLoss : sum;
+  }, 0);
+
+  return {
+    weekly: {
+      profit: weeklyProfit,
+      target: weeklyTarget,
+      percentage: Math.min(Math.max((weeklyProfit / weeklyTarget) * 100, 0), 100)
+    },
+    monthly: {
+      profit: monthlyProfit,
+      target: monthlyTarget,
+      percentage: Math.min(Math.max((monthlyProfit / monthlyTarget) * 100, 0), 100)
+    }
+  };
+};
+
+export const calculateGeniusMetrics = (stats: Statistics, records: DailyRecord[], currentCapital: number): GeniusMetrics => {
+  const winRateScore = (stats.winRate / 100) * 40;
+  const pfScore = Math.min((stats.profitFactor / 3) * 40, 40);
+  const healthScore = Math.round(winRateScore + pfScore + 20);
+
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const recentRecords = records.filter(r => r.type !== 'withdrawal' && new Date(r.date) >= thirtyDaysAgo);
+  const avgDailyProfit = recentRecords.length > 0 
+    ? recentRecords.reduce((acc, curr) => acc + curr.profitLoss, 0) / 30 
+    : 0;
+  
+  return {
+    healthScore,
+    projected30D: currentCapital + (avgDailyProfit * 30)
+  };
+};
+
+export const calculateRecordsWithBalance = (records: DailyRecord[], initialCapital: number): (DailyRecord & { capitalAfter: number })[] => {
+  const sorted = [...records].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  let balance = initialCapital;
+  const withBalance = [];
+  
+  for (const r of sorted) {
+    balance += r.profitLoss;
+    withBalance.push({ ...r, capitalAfter: parseFloat(balance.toFixed(2)) });
+  }
+  
+  return withBalance.reverse();
 };
 
 export const calculateStatistics = (records: DailyRecord[], initialCapital: number = 1000, reportTrades: MT5Trade[] = []): Statistics => {
@@ -276,7 +465,7 @@ export const calculateStatistics = (records: DailyRecord[], initialCapital: numb
   };
 };
 
-export const getPeriodStats = (records: DailyRecord[]) => {
+export const getPeriodStats = (records: DailyRecord[]): PeriodStats => {
   const weeklyStats: Record<string, number> = {};
   const monthlyStats: Record<string, number> = {};
   const dailyByDateStats: Record<string, number> = {};
