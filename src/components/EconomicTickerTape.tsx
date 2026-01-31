@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useId } from 'react';
 
 const EconomicTickerTape: React.FC = () => {
   const theme = 'dark';
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const widgetId = useRef(`tv-economic-${Math.random().toString(36).substr(2, 9)}`);
+  const id = useId();
+  const widgetId = `tv-economic-${id.replace(/:/g, '')}`;
 
   useEffect(() => {
     const currentContainer = containerRef.current;
@@ -13,7 +13,7 @@ const EconomicTickerTape: React.FC = () => {
     currentContainer.innerHTML = '';
     
     const widgetDiv = document.createElement('div');
-    widgetDiv.id = widgetId.current;
+    widgetDiv.id = widgetId;
     widgetDiv.className = 'tradingview-widget-container__widget';
     currentContainer.appendChild(widgetDiv);
 
@@ -45,7 +45,7 @@ const EconomicTickerTape: React.FC = () => {
         currentContainer.innerHTML = '';
       }
     };
-  }, [theme]);
+  }, [theme, widgetId]);
 
   return (
     <div className="w-full px-0 sm:px-4 mb-4 animate-fade-in">

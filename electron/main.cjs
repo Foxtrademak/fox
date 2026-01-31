@@ -21,8 +21,9 @@ function startLocalServer() {
       case '.js': contentType = 'text/javascript'; break;
       case '.css': contentType = 'text/css'; break;
       case '.json': contentType = 'application/json'; break;
+      case '.webp': contentType = 'image/webp'; break;
       case '.png': contentType = 'image/png'; break;
-      case '.jpg': contentType = 'image/jpg'; break;
+      case '.jpg': contentType = 'image/jpeg'; break;
       case '.svg': contentType = 'image/svg+xml'; break;
     }
 
@@ -46,7 +47,7 @@ function createWindow() {
     width: 1200,
     height: 800,
     title: "Fox Trade",
-    icon: path.join(__dirname, '../public/app-logo-new.png'),
+    icon: path.join(__dirname, '../public/app-logo-new.webp'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

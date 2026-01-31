@@ -1,8 +1,7 @@
 import { cn } from '../lib/utils';
-import logo from '../assets/app-logo-new.png';
+import logo from '../assets/app-logo-new.webp';
 
 export function BackgroundSplitLogo() {
-  const theme = 'dark';
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
       {/* Left Half Logo */}

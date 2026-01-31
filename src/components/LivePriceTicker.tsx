@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useId } from 'react';
 import { cn } from '../lib/utils';
 
 interface LivePriceTickerProps {
@@ -7,7 +7,8 @@ interface LivePriceTickerProps {
 
 const LivePriceTicker: React.FC<LivePriceTickerProps> = ({ theme = 'dark' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const widgetId = useRef(`tv-widget-${Math.random().toString(36).substr(2, 9)}`);
+  const id = useId();
+  const widgetId = `tv-widget-${id.replace(/:/g, '')}`;
 
   useEffect(() => {
     const currentContainer = containerRef.current;
@@ -18,7 +19,7 @@ const LivePriceTicker: React.FC<LivePriceTickerProps> = ({ theme = 'dark' }) => 
     
     // Create widget container
     const widgetDiv = document.createElement('div');
-    widgetDiv.id = widgetId.current;
+    widgetDiv.id = widgetId;
     widgetDiv.className = 'tradingview-widget-container__widget';
     currentContainer.appendChild(widgetDiv);
 
@@ -46,7 +47,7 @@ const LivePriceTicker: React.FC<LivePriceTickerProps> = ({ theme = 'dark' }) => 
         currentContainer.innerHTML = '';
       }
     };
-  }, [theme]);
+  }, [theme, widgetId]);
 
   return (
     <div className="w-full px-4 mb-8 animate-fade-in">

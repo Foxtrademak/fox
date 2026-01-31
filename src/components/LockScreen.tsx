@@ -1,31 +1,42 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Delete, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { cn, haptic } from '../lib/utils';
-import logo from '../assets/app-logo-new.png';
+import logo from '../assets/app-logo-new.webp';
 
 interface LockScreenProps {
   onUnlock: () => void;
-  theme?: 'light' | 'dark';
 }
 
-export function LockScreen({ onUnlock, theme = 'dark' }: LockScreenProps) {
+export function LockScreen({ onUnlock }: LockScreenProps) {
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState(false);
-  const [isSettingInitial, setIsSettingInitial] = useState(false);
+  const [isSettingInitial] = useState(() => !localStorage.getItem('app_passcode'));
   const [confirmPasscode, setConfirmPasscode] = useState('');
 
   const savedPasscode = localStorage.getItem('app_passcode');
-
-  useEffect(() => {
-    if (!savedPasscode) {
-      setIsSettingInitial(true);
-    }
-  }, [savedPasscode]);
 
   const handleDelete = useCallback(() => {
     setPasscode(prev => prev.slice(0, -1));
     setError(false);
   }, []);
+
+  const handleSetPasscodeInternal = useCallback((currentPasscode: string, currentConfirm: string) => {
+    if (isSettingInitial && currentPasscode.length === 4) {
+      if (!currentConfirm) {
+        setConfirmPasscode(currentPasscode);
+        setPasscode('');
+      } else {
+        if (currentPasscode === currentConfirm) {
+          localStorage.setItem('app_passcode', currentPasscode);
+          onUnlock();
+        } else {
+          setError(true);
+          setPasscode('');
+          setConfirmPasscode('');
+        }
+      }
+    }
+  }, [isSettingInitial, onUnlock]);
 
   const handleNumberClick = useCallback((num: string) => {
     if (passcode.length < 4) {
@@ -43,40 +54,20 @@ export function LockScreen({ onUnlock, theme = 'dark' }: LockScreenProps) {
               setError(true);
             }, 200);
           }
-        }
-      }
-    }
-  }, [passcode, isSettingInitial, savedPasscode, onUnlock]);
-
-  const handleSetPasscode = useCallback(() => {
-    if (isSettingInitial && passcode.length === 4) {
-      if (!confirmPasscode) {
-        setConfirmPasscode(passcode);
-        setPasscode('');
-      } else {
-        if (passcode === confirmPasscode) {
-          localStorage.setItem('app_passcode', passcode);
-          onUnlock();
         } else {
-          setError(true);
-          setPasscode('');
-          setConfirmPasscode('');
+          // In setting mode
+          if (confirmPasscode) {
+            handleSetPasscodeInternal(newPasscode, confirmPasscode);
+          } else {
+            setTimeout(() => {
+              setConfirmPasscode(newPasscode);
+              setPasscode('');
+            }, 300);
+          }
         }
       }
     }
-  }, [isSettingInitial, passcode, confirmPasscode, onUnlock]);
-
-  useEffect(() => {
-    if (isSettingInitial && passcode.length === 4 && confirmPasscode) {
-      handleSetPasscode();
-    } else if (isSettingInitial && passcode.length === 4 && !confirmPasscode) {
-      const timer = setTimeout(() => {
-        setConfirmPasscode(passcode);
-        setPasscode('');
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [passcode, isSettingInitial, confirmPasscode, handleSetPasscode]);
+  }, [passcode, isSettingInitial, savedPasscode, onUnlock, confirmPasscode, handleSetPasscodeInternal]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

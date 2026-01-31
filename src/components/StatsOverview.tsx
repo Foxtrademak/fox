@@ -6,7 +6,7 @@ import { cn } from '../lib/utils';
 import { TradeChart } from './TradeChart';
 import { type DailyRecord } from '../types';
 import { haptic } from '../lib/utils';
-import logo from '../assets/app-logo-new.png';
+import logo from '../assets/app-logo-new.webp';
 
 interface StatsOverviewProps {
   stats: Statistics;

@@ -6,9 +6,29 @@ import {
   PenTool,
   CandlestickChart
 } from 'lucide-react';
-import logo from '../assets/app-logo-new.png';
+import logo from '../assets/app-logo-new.webp';
+
+// Stable seed for consistent background generation
+const generateBackgroundCandles = (count: number) => {
+  return [...Array(count)].map((_, i) => {
+    // Deterministic random-like values based on index
+    const seed = (i + 1) * 123.456;
+    const pseudoRand = (s: number) => (Math.sin(s) + 1) / 2;
+    
+    return {
+      height: 40 + pseudoRand(seed) * 100,
+      y: 150 - (pseudoRand(seed * 2) * 100),
+      isUp: pseudoRand(seed * 3) > 0.4,
+      x: i * 35
+    };
+  });
+};
+
+const BACKGROUND_CANDLES = generateBackgroundCandles(30);
 
 export function TradingBackground() {
+  const candles = BACKGROUND_CANDLES;
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
       {/* Side Logos - Giant & Half visible on each side (Lower Transparency) */}
@@ -32,20 +52,17 @@ export function TradingBackground() {
       <div className="absolute top-[10%] left-[5%] w-full h-[30%] opacity-[0.5] rotate-[-5deg] scale-110">
         <svg viewBox="0 0 1000 300" className="w-full h-full">
           {/* Mock Candlestick Chart */}
-          {[...Array(30)].map((_, i) => {
-            const height = 40 + Math.random() * 100;
-            const y = 150 - (Math.random() * 100);
-            const isUp = Math.random() > 0.4;
+          {candles.map((candle, i) => {
             const color = "#D4AF37"; // Golden
             return (
-              <g key={i} transform={`translate(${i * 35}, ${y})`}>
-                <line x1="10" y1="-20" x2="10" y2={height + 20} stroke={color} strokeWidth="1" />
+              <g key={i} transform={`translate(${candle.x}, ${candle.y})`}>
+                <line x1="10" y1="-20" x2="10" y2={candle.height + 20} stroke={color} strokeWidth="1" />
                 <rect 
                   x="2" 
                   y="0" 
                   width="16" 
-                  height={height} 
-                  fill={isUp ? color : 'transparent'} 
+                  height={candle.height} 
+                  fill={candle.isUp ? color : 'transparent'} 
                   stroke={color} 
                   strokeWidth="1.5"
                   rx="1"

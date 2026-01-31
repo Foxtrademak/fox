@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build:win": "ELECTRON=true npm run build && electron-builder build --win --publish never",
@@ -26,13 +27,13 @@
       "electron/**/*"
     ],
     "win": {
-      "icon": "src/assets/app-logo-new.png",
+      "icon": "src/assets/app-logo-new.webp",
       "target": [
         "nsis"
       ]
     },
     "mac": {
-      "icon": "src/assets/app-logo-new.png",
+      "icon": "src/assets/app-logo-new.webp",
       "target": [
         {
           "target": "dmg",

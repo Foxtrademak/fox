@@ -25,7 +25,6 @@ interface ChartPoint {
 
 export function TradeChart({ data, initialCapital, className }: TradeChartProps) {
   const [viewMode, setViewMode] = useState<'line' | 'candle'>('line');
-  const theme = 'dark';
 
   const chartData = useMemo(() => {
     if (data.length === 0) return { realData: [], futureData: [] };
@@ -64,9 +63,11 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
     const sortedGroups = Object.values(groupedByDate)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    let currentCapital = initialCapital;
-    const allPoints: ChartPoint[] = sortedGroups.map(group => {
-      const open = currentCapital;
+    const allPoints: ChartPoint[] = [];
+    let runningCap = initialCapital;
+    
+    for (const group of sortedGroups) {
+      const open = runningCap;
       let dayHigh = open;
       let dayLow = open;
       let tempCap = open;
@@ -78,22 +79,22 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
         dayLow = Math.min(dayLow, tempCap);
       });
 
-      currentCapital += (group.profit || 0);
-      const close = currentCapital;
+      const close = open + (group.profit || 0);
+      runningCap = close;
 
-      return {
+      allPoints.push({
         displayDate: new Date(group.date).toLocaleDateString('en-US', { day: 'numeric', month: 'numeric' }),
         fullDate: group.date,
         profit: group.profit || 0,
-        capital: Number(currentCapital.toFixed(2)) || 0,
+        capital: Number(runningCap.toFixed(2)) || 0,
         open: Number(open.toFixed(2)) || 0,
         close: Number(close.toFixed(2)) || 0,
         high: Number(dayHigh.toFixed(2)) || 0,
         low: Number(dayLow.toFixed(2)) || 0,
         isStart: false,
         isFuture: false
-      };
-    });
+      });
+    }
 
     const combined = [initialPoint, ...allPoints];
     
@@ -170,7 +171,7 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
       candleGap: `${gapPercentage}%`,
       yDomain: [yMin, yMax]
     };
-  }, [activeData, lows, highs, initialCapital, capitals]);
+  }, [activeData, lows, highs, initialCapital]);
 
   // Calculate gradient stops for the line color (green for up, red for down)
   const lineStops = useMemo(() => {
@@ -352,7 +353,7 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
                 }}
                 itemStyle={{ color: '#ffffff', padding: '0' }}
                 labelStyle={{ color: 'rgba(255,255,255,0.4)', marginBottom: '4px', fontSize: '8px', fontWeight: 'bold' }}
-                formatter={(value: any) => [`$${Math.round(Number(value) || 0)}`, 'Balance']}
+                formatter={(value: number | string | undefined) => [`$${Math.round(Number(value) || 0)}`, 'Balance']}
               />
               <Area 
                 type="monotone" 
@@ -458,9 +459,21 @@ export function TradeChart({ data, initialCapital, className }: TradeChartProps)
               <Bar
                 dataKey={(d: ChartPoint) => [d.low ?? 0, d.high ?? 0]}
                 isAnimationActive={false}
-                shape={(props: any) => {
+                shape={(props: { x?: number; y?: number; width?: number; height?: number; payload?: ChartPoint }) => {
                   const { x, y, width, height, payload } = props;
-                  if (!payload || payload.isStart || payload.isFuture || isNaN(x) || isNaN(y) || isNaN(width) || isNaN(height)) return null;
+                  if (
+                    payload === undefined || 
+                    payload.isStart || 
+                    payload.isFuture || 
+                    x === undefined || 
+                    y === undefined || 
+                    width === undefined || 
+                    height === undefined || 
+                    isNaN(x) || 
+                    isNaN(y) || 
+                    isNaN(width) || 
+                    isNaN(height)
+                  ) return null;
                   
                   const open = payload.open ?? 0;
                   const close = payload.close ?? 0;

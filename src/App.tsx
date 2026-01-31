@@ -1,13 +1,13 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+﻿import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 // Force Update v36.0
-import { Wallet, RotateCcw, Download, Upload, Lock, LayoutGrid, BarChart3, Settings, X, Clock, FileSpreadsheet, TrendingUp, TrendingDown, LogOut, AlertTriangle, Target, Trophy, Info, Trash2, Cloud, RefreshCcw, Sparkles, Bell, BellOff, Sun, Moon, FileText, Calendar, UserCircle } from 'lucide-react';
+import { Wallet, RotateCcw, Download, Upload, Lock, LayoutGrid, BarChart3, Settings, X, Clock, FileSpreadsheet, TrendingUp, TrendingDown, LogOut, AlertTriangle, Target, Trophy, Info, Trash2, Cloud, RefreshCcw, Sparkles, Bell, BellOff, FileText, Calendar, UserCircle } from 'lucide-react';
 import { cn, haptic } from './lib/utils';
 import { type DailyRecord, type MT5Trade } from './types';
 import * as XLSX from 'xlsx';
 import { calculateStatistics, getPeriodStats, getSmartInsights, calculateSessionStats } from './lib/statistics';
 import { StatsOverview } from './components/StatsOverview';
-import logo from './assets/app-logo-new.png';
-const background = './background.png';
+import logo from './assets/app-logo-new.webp';
+const background = './background.webp';
 import { LockScreen } from './components/LockScreen';
 import LivePriceTicker from './components/LivePriceTicker';
 import { 
@@ -44,7 +44,7 @@ function App() {
       if (!ticking) {
         window.requestAnimationFrame(() => {
           const target = e.target as HTMLElement;
-          const currentScroll = target === document as any ? document.documentElement.scrollTop : (target.scrollTop || 0);
+          const currentScroll = target === (document as unknown as HTMLElement) ? document.documentElement.scrollTop : (target.scrollTop || 0);
           
           if (currentScroll > 2) {
             setIsScrolled(true);
@@ -152,7 +152,7 @@ function App() {
         id: r.id || crypto.randomUUID(),
         updatedAt: r.updatedAt || Date.now()
       }));
-    } catch (e) {
+    } catch {
       return [];
     }
   });
@@ -183,7 +183,7 @@ function App() {
   });
 
   // Function to send local notifications
-  const sendNotification = (title: string, body: string) => {
+  const sendNotification = useCallback((title: string, body: string) => {
     console.log(`Attempting to send notification: "${title}" - "${body}"`);
     
     if (!('Notification' in window)) {
@@ -211,7 +211,7 @@ function App() {
     } catch (error) {
       console.error('Error sending notification:', error);
     }
-  };
+  }, [notificationsEnabled]);
 
   const requestNotificationPermission = async () => {
     if (!('Notification' in window)) {
@@ -252,7 +252,7 @@ function App() {
       }
     }, 60000); // Update every minute
     return () => clearInterval(timer);
-  }, [currentTime, notificationsEnabled]);
+  }, [currentTime, notificationsEnabled, sendNotification]);
 
   const [initialCapital, setInitialCapital] = useState<number>(() => {
     const saved = localStorage.getItem('initial_capital');
@@ -311,7 +311,7 @@ function App() {
         ...t,
         updatedAt: t.updatedAt || Date.now()
       }));
-    } catch (e) {
+    } catch {
       return [];
     }
   });
@@ -343,29 +343,31 @@ function App() {
       // On Electron or mobile, popup might fail. We'll try popup first.
       try {
         await signInWithPopup(auth, googleProvider);
-      } catch (popupError: any) {
+      } catch (popupError: unknown) {
         console.warn('Popup sign-in failed, trying redirect...', popupError);
-        if (popupError.code === 'auth/popup-blocked' || popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
+        const error = popupError as { code?: string };
+        if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
           await signInWithRedirect(auth, googleProvider);
         } else {
           throw popupError;
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Sign in error details:', error);
       console.log('Current window origin:', window.location.origin);
       let errorMessage = 'Google sign-in failed.';
       
-      if (error.code === 'auth/unauthorized-domain') {
+      const err = error as { code?: string; message?: string };
+      if (err.code === 'auth/unauthorized-domain') {
         errorMessage += `\n\nDomain Unauthorized: The domain "${window.location.hostname}" is not authorized in Firebase Console.\n\nPlease add it to Authentication > Settings > Authorized Domains.`;
-      } else if (error.code === 'auth/popup-blocked') {
+      } else if (err.code === 'auth/popup-blocked') {
         errorMessage += '\n\nPopup blocked. Please allow popups for this application or try again.';
-      } else if (error.code === 'auth/operation-not-allowed') {
+      } else if (err.code === 'auth/operation-not-allowed') {
         errorMessage += '\n\nGoogle sign-in is not enabled in your Firebase project.';
-      } else if (error.code === 'auth/network-request-failed') {
+      } else if (err.code === 'auth/network-request-failed') {
         errorMessage += '\n\nNetwork error. Please check your internet connection.';
       } else {
-        errorMessage += `\n\nError: ${error.message || error.code || 'Unknown error'}`;
+        errorMessage += `\n\nError: ${err.message || err.code || 'Unknown error'}`;
       }
       
       alert(errorMessage);
@@ -396,7 +398,7 @@ function App() {
   };
 
   // Sync logic: Manual Cloud Fetch
-  const handleManualSync = async (silentOrEvent: boolean | any = false) => {
+  const handleManualSync = useCallback(async (silentOrEvent: boolean | Event | unknown = false) => {
     const silent = typeof silentOrEvent === 'boolean' ? silentOrEvent : false;
     
     if (!user) {
@@ -514,7 +516,7 @@ function App() {
     } finally {
       setIsSyncing(false);
     }
-  };
+  }, [user, records, initialCapital, reportTrades, weeklyTarget, monthlyTarget, showTargetsOnHome, sendNotification]);
 
   // Auth & Notifications Initialization
   useEffect(() => {
@@ -537,7 +539,7 @@ function App() {
     return () => {
       unsubscribeAuth();
     };
-  }, []);
+  }, [notificationsEnabled]);
 
   // Auto-sync on login
   useEffect(() => {
@@ -547,7 +549,7 @@ function App() {
         if (success) setIsInitialSyncDone(true);
       });
     }
-  }, [user, isInitialSyncDone]);
+  }, [user, isInitialSyncDone, handleManualSync]);
 
   // Sync logic: Push to Firestore on local changes
   useEffect(() => {
@@ -579,7 +581,7 @@ function App() {
       const timeoutId = setTimeout(syncData, 2000); // Debounce sync
       return () => clearTimeout(timeoutId);
     }
-  }, [records, initialCapital, reportTrades, weeklyTarget, monthlyTarget, showTargetsOnHome, user, isSyncing]);
+  }, [records, initialCapital, reportTrades, weeklyTarget, monthlyTarget, showTargetsOnHome, user, isSyncing, isInitialSyncDone]);
 
   // Automatic Cloud Fetch every 30 seconds
   useEffect(() => {
@@ -720,7 +722,7 @@ function App() {
     autoFetch(); // Run immediately on mount
     const intervalId = setInterval(autoFetch, 120000); // 120 seconds
     return () => clearInterval(intervalId);
-  }, [user]);
+  }, [user, isSyncing, isPushing, lastSyncTimestamp, records, reportTrades, initialCapital, weeklyTarget, monthlyTarget, showTargetsOnHome, sendNotification]);
 
   useEffect(() => {
     localStorage.setItem('trade_records', JSON.stringify(records));
@@ -879,15 +881,18 @@ function App() {
         const data = JSON.parse(event.target?.result as string);
         if (Array.isArray(data)) {
           if (confirm(`Do you want to import ${data.length} records? They will be added to your current data.`)) {
-            const processedData = data.map((r: any) => ({
-              ...r,
-              id: r.id || crypto.randomUUID(),
-              updatedAt: r.updatedAt || Date.now()
-            }));
+            const processedData = data.map((r: unknown) => {
+              const record = r as Partial<DailyRecord>;
+              return {
+                ...record,
+                id: record.id || crypto.randomUUID(),
+                updatedAt: record.updatedAt || Date.now()
+              } as DailyRecord;
+            });
             setRecords(prev => [...processedData, ...prev]);
           }
         }
-      } catch (err) {
+      } catch {
         alert('Invalid file.');
       }
     };
@@ -1026,7 +1031,7 @@ function App() {
 
         const dealsSheet = workbook.Sheets[targetSheetName];
         
-        const rawData = XLSX.utils.sheet_to_json(dealsSheet, { header: 1, defval: "" }) as any[][];
+        const rawData = XLSX.utils.sheet_to_json(dealsSheet, { header: 1, defval: "" }) as unknown[][];
         
         let headerRowIndex = -1;
         // Search for the header row that starts the 'Positions' table
@@ -1101,7 +1106,7 @@ function App() {
           const type = String(row[typeIndex] || '').toLowerCase().trim();
           
           // Helper to parse numbers properly
-          const parseNum = (val: any) => {
+          const parseNum = (val: unknown) => {
             if (typeof val === 'number') return val;
             if (!val) return 0;
             let s = String(val).trim();
@@ -2038,9 +2043,8 @@ function App() {
                           onClick={() => {
                             haptic('light');
                             try {
-                              // @ts-ignore
                               reportFilterInputRef.current?.showPicker();
-                            } catch (e) {
+                            } catch {
                               reportFilterInputRef.current?.click();
                             }
                           }}
@@ -2293,7 +2297,7 @@ function App() {
                                 src={photoURL} 
                                 alt={user.displayName || ''} 
                                 className="w-full h-full object-cover rounded-[inherit]" 
-                                onError={(e) => {
+                                onError={() => {
                                   console.error("Profile image failed to load:", photoURL);
                                   setProfileImgError(true);
                                 }}
@@ -2328,7 +2332,14 @@ function App() {
                     </div>
                   </div>
                   <button 
-                    onClick={() => { user ? handleSignOut() : handleGoogleSignIn(); haptic('medium'); }}
+                    onClick={() => { 
+                      if (user) {
+                        handleSignOut();
+                      } else {
+                        handleGoogleSignIn();
+                      }
+                      haptic('medium'); 
+                    }}
                     className={cn(
                       "w-full sm:w-auto px-6 py-3.5 ios-card-mini overflow-visible text-[10px] font-black uppercase tracking-widest transition-all active:scale-95",
                       user ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-primary text-black"
@@ -2491,9 +2502,8 @@ function App() {
                       onClick={() => {
                         haptic('light');
                         try {
-                          // @ts-ignore
                           reportDeleteInputRef.current?.showPicker();
-                        } catch (e) {
+                        } catch {
                           reportDeleteInputRef.current?.click();
                         }
                       }}
@@ -2945,7 +2955,7 @@ function App() {
         )} />
       </div>
 
-      {isLocked && <LockScreen onUnlock={() => setIsLocked(false)} theme={theme} />}
+      {isLocked && <LockScreen onUnlock={() => setIsLocked(false)} />}
       
       {/* Main Content Area */}
        <main className="flex-1 overflow-y-auto relative z-10 pt-[calc(env(safe-area-inset-top)+2rem)] px-3 sm:px-6 custom-scroll pb-32">
