@@ -46,7 +46,7 @@ function App() {
           const target = e.target as HTMLElement;
           const currentScroll = target === document as any ? document.documentElement.scrollTop : (target.scrollTop || 0);
           
-          if (currentScroll > 2) {
+          if (currentScroll > 10) {
             setIsScrolled(true);
           } else {
             setIsScrolled(false);
@@ -1287,12 +1287,9 @@ function App() {
       case 'home':
         return (
           <div className="space-y-6 animate-fade-in pb-32">
-            {/* Gradient Blur Effect - Positioned behind sticky header */}
-            <div className={cn("gradient-blur-header", isScrolled && "is-scrolled")} style={{ zIndex: 90 }} />
-
-            {/* Live Prices Ticker */}
+            {/* Live Prices Ticker - Now Above the fixed gradient blur */}
             <div className={cn(
-              "transition-all duration-500",
+              "transition-all duration-500 relative z-[110]",
               isScrolled ? "opacity-0 -translate-y-4 pointer-events-none h-0 mb-0 overflow-hidden" : "opacity-100 translate-y-0 h-auto mb-6"
             )}>
               <LivePriceTicker theme={theme} />
@@ -1315,14 +1312,8 @@ function App() {
                  />
               </div>
 
-              {/* Transparent Mask - Provides smooth transition behind sticky elements */}
-              <div className={cn(
-                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity] pointer-events-none",
-                  isScrolled ? "opacity-100" : "opacity-0"
-                )} style={{ 
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
-                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
-                }} />
+              {/* Transparent Mask - Removed to avoid double blur distortion */}
+              <div className="hidden" />
 
               <div className={cn(
                 "relative group px-2 sm:px-0 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
@@ -1819,6 +1810,7 @@ function App() {
               initialCapital={initialCapital} 
               sessionStats={sessionStats}
               theme={theme}
+              isScrolled={isScrolled}
             />
           </div>
         );
@@ -1900,22 +1892,13 @@ function App() {
 
         return (
           <div className="space-y-10 animate-fade-in pb-32">
-            {/* Gradient Blur Effect - Unified implementation for all pages */}
-            <div className={cn("gradient-blur-header", isScrolled && "is-scrolled")} style={{ zIndex: 90 }} />
-
             {/* Sticky Header Section - Trade Report Header and Filters */}
             <div className={cn(
                 "sticky top-0 z-[100] transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
                 isScrolled ? "pt-2 pb-0" : "pt-0 pb-2"
               )}>
-              {/* Transparent Mask - Provides smooth blur transition behind sticky elements */}
-              <div className={cn(
-                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter] pointer-events-none",
-                  isScrolled ? "opacity-100" : "opacity-0"
-                )} style={{ 
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
-                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
-                }} />
+              {/* Transparent Mask - Removed to avoid double blur distortion */}
+              <div className="hidden" />
 
               {/* Mobile Scrolled: Logo - Above the Card */}
               <div className={cn(
@@ -2216,22 +2199,13 @@ function App() {
       case 'settings':
         return (
           <div className="space-y-8 animate-fade-in pb-40 px-4">
-            {/* Gradient Blur Effect - Unified implementation for all pages */}
-            <div className={cn("gradient-blur-header", isScrolled && "is-scrolled")} style={{ zIndex: 90 }} />
-
             {/* Header Section */}
             <div className={cn(
                 "sticky top-0 z-[100] transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]",
                 isScrolled ? "pt-2 pb-0" : "pt-0 pb-2"
               )}>
-              {/* Transparent Mask - Provides smooth blur transition behind sticky elements */}
-              <div className={cn(
-                  "fixed inset-x-0 top-0 h-[120px] -z-10 transition-opacity duration-150 gpu-accelerated will-change-[opacity,backdrop-filter] pointer-events-none",
-                  isScrolled ? "opacity-100" : "opacity-0"
-                )} style={{ 
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)',
-                  maskImage: 'linear-gradient(to bottom, black 0%, black 60%, transparent 100%)'
-                }} />
+              {/* Transparent Mask - Removed to avoid double blur distortion */}
+              <div className="hidden" />
 
               {/* Mobile Scrolled: Logo - Above the Card */}
               <div className={cn(
@@ -2947,9 +2921,12 @@ function App() {
 
       {isLocked && <LockScreen onUnlock={() => setIsLocked(false)} theme={theme} />}
       
+      {/* Permanent Top Gradient Blur Fade - Elevated z-index to cover cards but stay behind ticker */}
+      <div className="gradient-blur-header" style={{ zIndex: 90 }} />
+      
       {/* Main Content Area */}
-       <main className="flex-1 overflow-y-auto relative z-10 pt-[calc(env(safe-area-inset-top)+2rem)] px-3 sm:px-6 custom-scroll pb-32">
-        <div className="relative z-10 max-w-[1400px] mx-auto">
+       <main className="flex-1 overflow-y-auto pt-[calc(env(safe-area-inset-top)+2rem)] px-3 sm:px-6 custom-scroll pb-32">
+        <div className="max-w-[1400px] mx-auto">
           {renderTabContent()}
         </div>
       </main>

@@ -21,39 +21,24 @@ interface StatsOverviewProps {
   theme: 'light' | 'dark';
 }
 
-export function StatsOverview({ stats, periodStats, records, initialCapital, sessionStats, theme }: StatsOverviewProps) {
-  const [isScrolled, setIsScrolled] = useState(false);
+interface StatsOverviewProps {
+  stats: Statistics;
+  records: DailyRecord[];
+  sessionStats: SessionStats[];
+  periodStats: {
+    weekly: PeriodStats[];
+    monthly: PeriodStats[];
+    daily: PeriodStats[];
+  };
+  initialCapital: number;
+  theme: 'light' | 'dark';
+  isScrolled?: boolean;
+}
 
-  useEffect(() => {
-    let ticking = false;
-    const handleScroll = (e: Event) => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const target = (e.target === document ? document.documentElement : e.target) as HTMLElement;
-          const currentScrollY = target.scrollTop || window.scrollY;
-          
-          setIsScrolled(currentScrollY > 2);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
-    return () => window.removeEventListener('scroll', handleScroll, { capture: true });
-  }, []);
-
+export function StatsOverview({ stats, periodStats, records, initialCapital, sessionStats, theme, isScrolled = false }: StatsOverviewProps) {
   return (
     <div className="max-w-[1400px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10 px-0 sm:px-4 relative">
       
-      {/* iOS Top Fade Effect - Removed background gradients to keep it clean */}
-      <div className={cn(
-        "fixed top-0 inset-x-0 h-40 z-[90] pointer-events-none transition-opacity duration-500 opacity-0"
-      )} />
-
-      {/* Gradient Blur Effect - Unified implementation for all pages */}
-      <div className={cn("gradient-blur-header", isScrolled && "is-scrolled")} style={{ zIndex: 90 }} />
-
       {/* Sticky Header Section - All Cards with Stack Effect */}
       <div className={cn(
         "z-[100] pt-4 transition-all duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] sticky top-0",
